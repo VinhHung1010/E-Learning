@@ -404,3 +404,55 @@ setInterval(() => {
         updateNotificationBadge();
     }
 }, 60000); // Check every minute
+
+// ===== REPORT FUNCTIONS =====
+
+// Lấy thống kê tổng quan
+async function getReportOverview() {
+    return await api('/reports/overview');
+}
+
+// Lấy thống kê theo ngày
+async function getReportDaily(days = 7) {
+    return await api(`/reports/daily?days=${days}`);
+}
+
+// Lấy thống kê theo tháng
+async function getReportMonthly(months = 12) {
+    return await api(`/reports/monthly?months=${months}`);
+}
+
+// Lấy top khóa học
+async function getReportTopCourses(limit = 10) {
+    return await api(`/reports/top-courses?limit=${limit}`);
+}
+
+// Lấy top khóa học doanh thu
+async function getReportTopRevenue(limit = 10) {
+    return await api(`/reports/top-revenue?limit=${limit}`);
+}
+
+// Lấy top giảng viên
+async function getReportTopInstructors(limit = 10) {
+    return await api(`/reports/top-instructors?limit=${limit}`);
+}
+
+// Lấy thống kê danh mục
+async function getReportCategories() {
+    return await api('/reports/categories');
+}
+
+// Lấy học viên hoạt động
+async function getReportActiveStudents(days = 7) {
+    return await api(`/reports/active-students?days=${days}`);
+}
+
+// Lấy chi tiết khóa học cho report
+async function getReportCourseDetails(courseId) {
+    return await api(`/reports/course/${courseId}`);
+}
+
+// Lấy tỷ lệ hoàn thành
+async function getReportCompletion() {
+    return await api('/reports/completion');
+}

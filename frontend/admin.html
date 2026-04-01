@@ -45,6 +45,10 @@
                     <i class="fas fa-play-circle"></i>
                     <span>Bài học</span>
                 </a>
+                <a href="#" class="nav-item" data-section="reports">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Báo cáo</span>
+                </a>
             </nav>
             <div class="admin-sidebar-footer">
                 <a href="index.html" class="nav-item">
@@ -295,6 +299,154 @@
                     </div>
                     <div id="lessons-list-container" class="lessons-list-admin">
                         <p class="empty-message">Vui lòng chọn khóa học để xem danh sách bài học</p>
+                    </div>
+                </section>
+
+                <!-- Reports Section -->
+                <section id="reports-section" class="admin-section">
+                    <div class="section-header">
+                        <h2>Báo cáo & Thống kê</h2>
+                        <div class="section-actions">
+                            <select id="report-period" class="filter-select" onchange="changeReportPeriod()">
+                                <option value="7">7 ngày qua</option>
+                                <option value="30" selected>30 ngày qua</option>
+                                <option value="90">3 tháng qua</option>
+                                <option value="365">1 năm qua</option>
+                            </select>
+                            <button class="btn btn-secondary" onclick="exportReport()">
+                                <i class="fas fa-download"></i> Export CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Overview Stats -->
+                    <div class="stats-grid" style="margin-bottom: 30px;">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #e3f2fd; color: #1976d2;">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="report-users">0</h3>
+                                <p>Tổng người dùng</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #e8f5e9; color: #388e3c;">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="report-courses">0</h3>
+                                <p>Tổng khóa học</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #fff3e0; color: #f57c00;">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="report-enrollments">0</h3>
+                                <p>Tổng đăng ký</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #f3e5f5; color: #7b1fa2;">
+                                <i class="fas fa-money-bill-wave"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="report-revenue">0</h3>
+                                <p>Tổng doanh thu</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #fce4ec; color: #c2185b;">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="report-reviews">0</h3>
+                                <p>Tổng đánh giá</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #e0f2f1; color: #00796b;">
+                                <i class="fas fa-check-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="report-completion">0%</h3>
+                                <p>Tỷ lệ hoàn thành</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Row -->
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card">
+                            <h3><i class="fas fa-chart-line"></i> Biểu đồ đăng ký</h3>
+                            <div id="enrollment-chart" class="chart-container">
+                                <div class="chart-placeholder">
+                                    <i class="fas fa-chart-area"></i>
+                                    <p>Biểu đồ đăng ký theo thời gian</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="dashboard-card">
+                            <h3><i class="fas fa-chart-bar"></i> Biểu đồ doanh thu</h3>
+                            <div id="revenue-chart" class="chart-container">
+                                <div class="chart-placeholder">
+                                    <i class="fas fa-chart-bar"></i>
+                                    <p>Biểu đồ doanh thu theo thời gian</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Top Courses -->
+                    <div class="dashboard-card" style="margin-top: 24px;">
+                        <h3><i class="fas fa-trophy"></i> Top khóa học phổ biến</h3>
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>STT</th>
+                                        <th>Khóa học</th>
+                                        <th>Lượt đăng ký</th>
+                                        <th>Đánh giá</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="top-courses-table">
+                                    <tr><td colspan="5" class="loading">Đang tải...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Top Instructors -->
+                    <div class="dashboard-card" style="margin-top: 24px;">
+                        <h3><i class="fas fa-chalkboard-teacher"></i> Top giảng viên</h3>
+                        <div class="table-responsive">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>STT</th>
+                                        <th>Giảng viên</th>
+                                        <th>Số khóa học</th>
+                                        <th>Lượt đăng ký</th>
+                                        <th>Doanh thu</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="top-instructors-table">
+                                    <tr><td colspan="5" class="loading">Đang tải...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Category Stats -->
+                    <div class="dashboard-card" style="margin-top: 24px;">
+                        <h3><i class="fas fa-folder-open"></i> Thống kê theo danh mục</h3>
+                        <div id="category-stats-grid" class="category-stats-grid">
+                            <p class="empty-message">Đang tải...</p>
+                        </div>
                     </div>
                 </section>
             </div>

@@ -866,3 +866,322 @@ document.getElementById('lesson-form').addEventListener('submit', async (e) => {
         showToast('Có lỗi xảy ra: ' + error.message, 'error');
     }
 });
+
+// ==================== REPORT FUNCTIONS ====================
+
+let currentReportPeriod = 30;
+
+async function loadReportSection() {
+    await Promise.all([
+        loadReportOverview(),
+        loadReportDailyChart(),
+        loadReportRevenueChart(),
+        loadReportTopCourses(),
+        loadReportTopInstructors(),
+        loadReportCategoryStats()
+    ]);
+}
+
+async function loadReportOverview() {
+    try {
+        const overview = await getReportOverview();
+        
+        document.getElementById('report-users').textContent = formatNumber(overview.total_users);
+        document.getElementById('report-courses').textContent = formatNumber(overview.total_courses);
+        document.getElementById('report-enrollments').textContent = formatNumber(overview.total_enrollments);
+        document.getElementById('report-revenue').textContent = formatCurrency(overview.total_revenue);
+        document.getElementById('report-reviews').textContent = formatNumber(overview.total_reviews);
+        document.getElementById('report-completion').textContent = overview.completion_rate + '%';
+    } catch (error) {
+        console.error('Error loading report overview:', error);
+    }
+}
+
+async function loadReportDailyChart() {
+    const container = document.getElementById('enrollment-chart');
+    if (!container) return;
+    
+    try {
+        const stats = await getReportDaily(currentReportPeriod);
+        
+        if (!stats || stats.length === 0) {
+            container.innerHTML = '<p class="empty-message">Không có dữ liệu</p>';
+            return;
+        }
+        
+        const maxValue = Math.max(...stats.map(s => s.enrollments || 0), 1);
+        
+        container.innerHTML = `
+            <div class="chart-bars">
+                ${stats.map(s => `
+                    <div class="chart-bar-wrapper">
+                        <div class="chart-bar" style="height: ${((s.enrollments || 0) / maxValue) * 180}px;">
+                            <span class="chart-bar-value">${s.enrollments || 0}</span>
+                        </div>
+                        <span class="chart-bar-label">${formatDateShort(s.date)}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    } catch (error) {
+        container.innerHTML = '<p class="empty-message">Lỗi tải dữ liệu</p>';
+    }
+}
+
+async function loadReportRevenueChart() {
+    const container = document.getElementById('revenue-chart');
+    if (!container) return;
+    
+    try {
+        const stats = await getReportDaily(currentReportPeriod);
+        
+        if (!stats || stats.length === 0) {
+            container.innerHTML = '<p class="empty-message">Không có dữ liệu</p>';
+            return;
+        }
+        
+        const maxValue = Math.max(...stats.map(s => s.revenue || 0), 1);
+        
+        container.innerHTML = `
+            <div class="chart-bars">
+                ${stats.map(s => `
+                    <div class="chart-bar-wrapper">
+                        <div class="chart-bar" style="height: ${((s.revenue || 0) / maxValue) * 180}px; background: linear-gradient(180deg, #28a745 0%, #1e7e34 100%);">
+                            <span class="chart-bar-value">${formatCurrencyShort(s.revenue || 0)}</span>
+                        </div>
+                        <span class="chart-bar-label">${formatDateShort(s.date)}</span>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    } catch (error) {
+        container.innerHTML = '<p class="empty-message">Lỗi tải dữ liệu</p>';
+    }
+}
+
+async function loadReportTopCourses() {
+    const tbody = document.getElementById('top-courses-table');
+    if (!tbody) return;
+    
+    try {
+        const courses = await getReportTopCourses(10);
+        
+        if (!courses || courses.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-message">Không có dữ liệu</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = courses.map((course, index) => `
+            <tr>
+                <td><strong>${index + 1}</strong></td>
+                <td>
+                    <a href="course-detail.html?id=${course.id}" class="action-link">${course.title}</a>
+                </td>
+                <td><strong>${course.enrollment_count}</strong></td>
+                <td>
+                    <span class="rating-stars">
+                        ${'★'.repeat(Math.round(course.avg_rating))}${'☆'.repeat(5 - Math.round(course.avg_rating))}
+                    </span>
+                    <span style="color: #666;">(${course.review_count})</span>
+                </td>
+                <td>
+                    <button class="btn btn-sm btn-info" onclick="viewCourseReport(${course.id})">
+                        <i class="fas fa-chart-bar"></i> Chi tiết
+                    </button>
+                </td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-message">Lỗi tải dữ liệu</td></tr>';
+    }
+}
+
+async function loadReportTopInstructors() {
+    const tbody = document.getElementById('top-instructors-table');
+    if (!tbody) return;
+    
+    try {
+        const instructors = await getReportTopInstructors(10);
+        
+        if (!instructors || instructors.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="empty-message">Không có dữ liệu</td></tr>';
+            return;
+        }
+        
+        tbody.innerHTML = instructors.map((inst, index) => `
+            <tr>
+                <td><strong>${index + 1}</strong></td>
+                <td>
+                    <div class="instructor-cell">
+                        <div class="instructor-avatar">
+                            ${inst.avatar ? `<img src="${inst.avatar}" alt="">` : inst.instructor_name.charAt(0).toUpperCase()}
+                        </div>
+                        <span>${inst.instructor_name}</span>
+                    </div>
+                </td>
+                <td>${inst.course_count}</td>
+                <td>${inst.total_enrollments}</td>
+                <td class="revenue-highlight">${formatCurrency(inst.total_revenue)}</td>
+            </tr>
+        `).join('');
+    } catch (error) {
+        tbody.innerHTML = '<tr><td colspan="5" class="empty-message">Lỗi tải dữ liệu</td></tr>';
+    }
+}
+
+async function loadReportCategoryStats() {
+    const container = document.getElementById('category-stats-grid');
+    if (!container) return;
+    
+    try {
+        const stats = await getReportCategories();
+        
+        if (!stats || stats.length === 0) {
+            container.innerHTML = '<p class="empty-message">Không có dữ liệu</p>';
+            return;
+        }
+        
+        const colors = ['#e94560', '#0f3460', '#533483', '#16213e', '#1a1a2e', '#388e3c', '#1976d2', '#f57c00'];
+        
+        container.innerHTML = stats.map((cat, index) => `
+            <div class="category-stat-card" onclick="window.location.href='admin.html?category=${cat.id}'">
+                <div class="category-stat-header">
+                    <div class="category-stat-icon" style="background: ${colors[index % colors.length]}">
+                        <i class="fas fa-folder"></i>
+                    </div>
+                    <div class="category-stat-name">
+                        <h4>${cat.name}</h4>
+                        <p>${cat.course_count} khóa học</p>
+                    </div>
+                </div>
+                <div class="category-stat-numbers">
+                    <div>
+                        <span>${cat.enrollment_count}</span>
+                        <small>Đăng ký</small>
+                    </div>
+                    <div>
+                        <span>${formatCurrency(cat.revenue)}</span>
+                        <small>Doanh thu</small>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        container.innerHTML = '<p class="empty-message">Lỗi tải dữ liệu</p>';
+    }
+}
+
+function changeReportPeriod() {
+    currentReportPeriod = parseInt(document.getElementById('report-period').value);
+    loadReportDailyChart();
+    loadReportRevenueChart();
+}
+
+async function exportReport() {
+    const btn = event.target.closest('button');
+    btn.classList.add('btn-exporting');
+    btn.innerHTML = '<i class="fas fa-spinner"></i> Đang xuất...';
+    
+    try {
+        // Get all data
+        const [overview, topCourses, topInstructors, categories] = await Promise.all([
+            getReportOverview(),
+            getReportTopCourses(100),
+            getReportTopInstructors(100),
+            getReportCategories()
+        ]);
+        
+        // Create CSV content
+        let csv = '\uFEFF'; // BOM for UTF-8
+        
+        // Overview
+        csv += 'BÁO CÁO TỔNG QUAN\n';
+        csv += `Tổng người dùng,${overview.total_users}\n`;
+        csv += `Tổng khóa học,${overview.total_courses}\n`;
+        csv += `Tổng đăng ký,${overview.total_enrollments}\n`;
+        csv += `Tổng doanh thu,${overview.total_revenue}\n`;
+        csv += `Tổng đánh giá,${overview.total_reviews}\n`;
+        csv += `Tỷ lệ hoàn thành,${overview.completion_rate}%\n\n`;
+        
+        // Top Courses
+        csv += 'TOP KHÓA HỌC\n';
+        csv += 'STT,Khóa học,Lượt đăng ký,Đánh giá,Số đánh giá\n';
+        topCourses.forEach((course, i) => {
+            csv += `${i + 1},"${course.title}",${course.enrollment_count},${course.avg_rating},${course.review_count}\n`;
+        });
+        csv += '\n';
+        
+        // Top Instructors
+        csv += 'TOP GIẢNG VIÊN\n';
+        csv += 'STT,Giảng viên,Số khóa học,Tổng đăng ký,Doanh thu\n';
+        topInstructors.forEach((inst, i) => {
+            csv += `${i + 1},"${inst.instructor_name}",${inst.course_count},${inst.total_enrollments},${inst.total_revenue}\n`;
+        });
+        csv += '\n';
+        
+        // Categories
+        csv += 'THỐNG KÊ THEO DANH MỤC\n';
+        csv += 'Danh mục,Số khóa học,Lượt đăng ký,Doanh thu\n';
+        categories.forEach(cat => {
+            csv += `"${cat.name}",${cat.course_count},${cat.enrollment_count},${cat.revenue}\n`;
+        });
+        
+        // Download
+        const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `bao-cao-elearning-${new Date().toISOString().split('T')[0]}.csv`;
+        link.click();
+        
+        showToast('Đã xuất báo cáo thành công!', 'success');
+    } catch (error) {
+        showToast('Có lỗi khi xuất báo cáo: ' + error.message, 'error');
+    } finally {
+        btn.classList.remove('btn-exporting');
+        btn.innerHTML = '<i class="fas fa-download"></i> Export CSV';
+    }
+}
+
+async function viewCourseReport(courseId) {
+    try {
+        const details = await getReportCourseDetails(courseId);
+        
+        alert(`Khóa học: ${details.title}\n` +
+              `Người đăng ký: ${details.enrollment_count}\n` +
+              `Đánh giá TB: ${details.avg_rating}\n` +
+              `Số đánh giá: ${details.review_count}\n` +
+              `Tiến độ TB: ${details.avg_progress || 0}%`);
+    } catch (error) {
+        showToast('Có lỗi khi tải chi tiết khóa học', 'error');
+    }
+}
+
+// Utility functions
+function formatNumber(num) {
+    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+}
+
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+}
+
+function formatCurrencyShort(amount) {
+    if (amount >= 1000000) return (amount / 1000000).toFixed(1) + 'M';
+    if (amount >= 1000) return (amount / 1000).toFixed(0) + 'K';
+    return amount;
+}
+
+function formatDateShort(dateStr) {
+    const date = new Date(dateStr);
+    return `${date.getDate()}/${date.getMonth() + 1}`;
+}
+
+// Override showSection to load report data
+const originalShowSection = showSection;
+showSection = function(sectionId) {
+    originalShowSection(sectionId);
+    
+    if (sectionId === 'reports') {
+        loadReportSection();
+    }
+};

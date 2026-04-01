@@ -952,3 +952,249 @@ body {
     outline: none;
     border-color: var(--admin-primary);
 }
+
+/* ==================== REPORT/DASHBOARD STYLES ==================== */
+
+.chart-container {
+    min-height: 250px;
+    position: relative;
+}
+
+.chart-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: var(--admin-text-light);
+}
+
+.chart-placeholder i {
+    font-size: 3rem;
+    margin-bottom: 15px;
+    opacity: 0.3;
+}
+
+.chart-placeholder p {
+    margin: 0;
+    font-size: 0.9rem;
+}
+
+/* Chart bars */
+.chart-bars {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-around;
+    height: 200px;
+    padding: 20px 10px;
+    gap: 10px;
+}
+
+.chart-bar-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100%;
+}
+
+.chart-bar {
+    width: 100%;
+    max-width: 40px;
+    background: linear-gradient(180deg, var(--admin-primary) 0%, #d63850 100%);
+    border-radius: 4px 4px 0 0;
+    transition: all 0.3s ease;
+    position: relative;
+    min-height: 5px;
+}
+
+.chart-bar:hover {
+    opacity: 0.8;
+    transform: scaleY(1.02);
+}
+
+.chart-bar-value {
+    position: absolute;
+    top: -25px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--admin-text);
+    white-space: nowrap;
+}
+
+.chart-bar-label {
+    margin-top: 10px;
+    font-size: 0.75rem;
+    color: var(--admin-text-light);
+    text-align: center;
+}
+
+/* Category Stats Grid */
+.category-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+}
+
+.category-stat-card {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.category-stat-card:hover {
+    background: #e9ecef;
+    transform: translateY(-2px);
+}
+
+.category-stat-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
+.category-stat-icon {
+    width: 45px;
+    height: 45px;
+    border-radius: 10px;
+    background: var(--admin-primary);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+}
+
+.category-stat-name {
+    flex: 1;
+}
+
+.category-stat-name h4 {
+    margin: 0;
+    color: var(--admin-text);
+    font-size: 1rem;
+}
+
+.category-stat-name p {
+    margin: 5px 0 0;
+    color: var(--admin-text-light);
+    font-size: 0.85rem;
+}
+
+.category-stat-numbers {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 15px;
+    border-top: 1px solid var(--admin-border);
+}
+
+.category-stat-numbers div {
+    text-align: center;
+}
+
+.category-stat-numbers span {
+    display: block;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--admin-text);
+}
+
+.category-stat-numbers small {
+    color: var(--admin-text-light);
+    font-size: 0.8rem;
+}
+
+/* Progress bar in tables */
+.progress-bar-mini {
+    width: 100px;
+    height: 6px;
+    background: #e9ecef;
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.progress-bar-mini-fill {
+    height: 100%;
+    background: var(--admin-primary);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* Instructor avatar */
+.instructor-cell {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.instructor-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #e9ecef;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--admin-text-light);
+    font-weight: 600;
+}
+
+.instructor-avatar img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+/* Action link */
+.action-link {
+    color: var(--admin-primary);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.action-link:hover {
+    color: #d63850;
+    text-decoration: underline;
+}
+
+/* Export button animation */
+.btn-exporting {
+    pointer-events: none;
+    opacity: 0.7;
+}
+
+.btn-exporting i {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Revenue highlight */
+.revenue-highlight {
+    color: #28a745;
+    font-weight: 600;
+}
+
+/* Report loading state */
+.report-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+    color: var(--admin-text-light);
+}
+
+.report-loading i {
+    animation: spin 1s linear infinite;
+    margin-right: 10px;
+}
