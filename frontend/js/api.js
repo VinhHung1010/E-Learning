@@ -35,8 +35,9 @@ function updateAuthNav() {
                 <div class="user-avatar">${user.name.charAt(0).toUpperCase()}</div>
                 <span class="user-name">${user.name}</span>
                 <div class="dropdown-menu">
-                    ${adminLink}
+                    <a href="profile.html"><i class="fas fa-user"></i> Hồ sơ</a>
                     <a href="my-courses.html"><i class="fas fa-book"></i> Khóa học của tôi</a>
+                    ${adminLink}
                     <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
                 </div>
             </div>
@@ -265,4 +266,30 @@ function requireAdmin() {
 // Tạo đường dẫn với BASE_URL
 function url(path) {
     return path;
+}
+
+// Lấy thông tin profile
+async function getProfile() {
+    return await api('/users/profile');
+}
+
+// Cập nhật profile
+async function updateProfile(profileData) {
+    return await api('/users/profile', {
+        method: 'PUT',
+        body: JSON.stringify(profileData)
+    });
+}
+
+// Đổi mật khẩu
+async function changePassword(current_password, new_password) {
+    return await api('/users/profile/password', {
+        method: 'PUT',
+        body: JSON.stringify({ current_password, new_password })
+    });
+}
+
+// Cập nhật user trong localStorage
+function updateLocalUser(user) {
+    localStorage.setItem('user', JSON.stringify(user));
 }

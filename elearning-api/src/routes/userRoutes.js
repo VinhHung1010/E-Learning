@@ -88,6 +88,55 @@ router.get('/profile', auth, async (req, res) => {
     }
 });
 
+router.put('/profile', auth, async (req, res) => {
+    try {
+        const { name, phone, address, bio, avatar_url } = req.body;
+        
+        if (!name || name.trim() === '') {
+            return res.status(400).json({ error: 'Tên không được để trống' });
+        }
+        
+        const updated = await User.update(req.user.id, { name, phone, address, bio, avatar_url });
+        
+        if (!updated) {
+            return res.status(404).json({ error: 'Không tìm thấy người dùng' });
+        }
+        
+        const user = await User.getById(req.user.id);
+        res.json({ message: 'Cập nhật thông tin thành công', user });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.put('/profile/password', auth, async (req, res) => {
+    try {
+        const { current_password, new_password } = req.body;
+        
+        if (!current_password || !new_password) {
+            return res.status(400).json({ error: 'Vui lòng điền đầy đủ thông tin' });
+        }
+        
+        if (new_password.length < 6) {
+            return res.status(400).json({ error: 'Mật khẩu mới phải có ít nhất 6 ký tự' });
+        }
+        
+        const user = await User.getById(req.user.id);
+        const isMatch = await bcrypt.compare(current_password, user.password);
+        
+        if (!isMatch) {
+            return res.status(400).json({ error: 'Mật khẩu hiện tại không đúng' });
+        }
+        
+        const hashedPassword = await bcrypt.hash(new_password, 10);
+        await User.update(req.user.id, { password: hashedPassword });
+        
+        res.json({ message: 'Đổi mật khẩu thành công' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
 router.get('/', auth, isAdmin, async (req, res) => {
     try {
         const users = await User.getAll();
