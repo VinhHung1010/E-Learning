@@ -17,4 +17,18 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS categories (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 SET FOREIGN_KEY_CHECKS = 1;
+
+-- Insert sample categories
+INSERT INTO categories (name) VALUES 
+('Lập trình'),
+('Marketing'),
+('Kinh doanh'),
+('Kỹ năng mềm'),
+('Học để giỏi'),
+('Máy tính cơ bản');
