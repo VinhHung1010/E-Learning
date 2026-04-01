@@ -67,7 +67,8 @@ function showSection(sectionId) {
         'courses': 'Quản lý khóa học',
         'categories': 'Quản lý danh mục',
         'enrollments': 'Quản lý đăng ký',
-        'reviews': 'Quản lý đánh giá'
+        'reviews': 'Quản lý đánh giá',
+        'lessons': 'Quản lý bài học'
     };
     document.getElementById('page-title').textContent = titles[sectionId] || 'Dashboard';
 
@@ -79,6 +80,7 @@ function showSection(sectionId) {
         case 'categories': loadCategories(); break;
         case 'enrollments': loadEnrollments(); break;
         case 'reviews': loadReviews(); break;
+        case 'lessons': initLessonsSection(); break;
     }
 }
 
@@ -622,3 +624,245 @@ function getStatusText(status) {
     };
     return texts[status] || status;
 }
+
+// ==================== LESSONS MANAGEMENT ====================
+
+async function initLessonsSection() {
+    await loadCoursesForLessonSelect();
+}
+
+async function loadCoursesForLessonSelect() {
+    try {
+        const courses = await api('/courses');
+        const select = document.getElementById('lesson-course-filter');
+        const modalSelect = document.getElementById('lesson-course');
+        
+        const options = courses.map(c => `<option value="${c.id}">${c.title}</option>`).join('');
+        
+        select.innerHTML = '<option value="">Chọn khóa học</option>' + options;
+        modalSelect.innerHTML = options;
+        
+        // Auto-select if there's a previous selection
+        if (select.dataset.selected) {
+            select.value = select.dataset.selected;
+        }
+    } catch (error) {
+        console.error('Load courses error:', error);
+    }
+}
+
+async function loadLessons() {
+    const container = document.getElementById('lessons-list-container');
+    const courseId = document.getElementById('lesson-course-filter').value;
+    
+    if (!courseId) {
+        container.innerHTML = '<p class="empty-message">Vui lòng chọn khóa học để xem danh sách bài học</p>';
+        return;
+    }
+    
+    container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Đang tải bài học...</p></div>';
+    
+    try {
+        const [lessons, course] = await Promise.all([
+            api(`/lessons/course/${courseId}`),
+            api(`/courses/${courseId}`)
+        ]);
+        
+        if (lessons.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="fas fa-play-circle"></i></div>
+                    <h3>Chưa có bài học nào</h3>
+                    <p>Khóa học "${course.title}" chưa có bài học nào.</p>
+                    <button class="btn btn-primary" onclick="showLessonModal()">
+                        <i class="fas fa-plus"></i> Thêm bài học đầu tiên
+                    </button>
+                </div>
+            `;
+            return;
+        }
+        
+        container.innerHTML = `
+            <div class="lessons-admin-header">
+                <h3>Danh sách bài học - ${course.title}</h3>
+                <span class="lesson-count">${lessons.length} bài học</span>
+            </div>
+            <div class="lessons-admin-list" id="lessons-admin-list">
+                ${lessons.map((lesson, index) => `
+                    <div class="lesson-admin-item" data-id="${lesson.id}">
+                        <div class="lesson-admin-number">${lesson.position || index + 1}</div>
+                        <div class="lesson-admin-content">
+                            <h4>${lesson.title}</h4>
+                            <p>${lesson.content ? (lesson.content.substring(0, 100) + '...') : 'Không có mô tả'}</p>
+                            <div class="lesson-admin-meta">
+                                ${lesson.video_url ? '<span><i class="fas fa-video"></i> Có video</span>' : ''}
+                                ${lesson.content ? '<span><i class="fas fa-file-alt"></i> Có nội dung</span>' : ''}
+                            </div>
+                        </div>
+                        <div class="lesson-admin-actions">
+                            <button class="btn btn-sm btn-info" onclick="viewLessonDetail(${lesson.id})" title="Xem chi tiết">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-warning" onclick="editLesson(${lesson.id})" title="Sửa">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" onclick="deleteLessonConfirm(${lesson.id})" title="Xóa">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+        `;
+    } catch (error) {
+        console.error('Load lessons error:', error);
+        container.innerHTML = '<p class="empty-message">Lỗi khi tải bài học. Vui lòng thử lại.</p>';
+    }
+}
+
+function showLessonModal(lessonId = null) {
+    loadCoursesForLessonSelect();
+    const modal = document.getElementById('lesson-modal');
+    const title = document.getElementById('lesson-modal-title');
+    const form = document.getElementById('lesson-form');
+    
+    form.reset();
+    document.getElementById('lesson-id').value = '';
+    document.getElementById('lesson-position').value = '1';
+    
+    // Set course from filter if selected
+    const selectedCourse = document.getElementById('lesson-course-filter').value;
+    if (selectedCourse) {
+        document.getElementById('lesson-course').value = selectedCourse;
+    }
+    
+    if (lessonId) {
+        title.textContent = 'Sửa bài học';
+        loadLessonData(lessonId);
+    } else {
+        title.textContent = 'Thêm bài học';
+    }
+    
+    modal.classList.add('show');
+}
+
+function closeLessonModal() {
+    document.getElementById('lesson-modal').classList.remove('show');
+}
+
+async function loadLessonData(lessonId) {
+    try {
+        const lesson = await api(`/lessons/${lessonId}`);
+        document.getElementById('lesson-id').value = lesson.id;
+        document.getElementById('lesson-course').value = lesson.course_id;
+        document.getElementById('lesson-title').value = lesson.title;
+        document.getElementById('lesson-content').value = lesson.content || '';
+        document.getElementById('lesson-video').value = lesson.video_url || '';
+        document.getElementById('lesson-position').value = lesson.position || 1;
+    } catch (error) {
+        showToast('Có lỗi khi tải dữ liệu bài học', 'error');
+    }
+}
+
+async function editLesson(lessonId) {
+    showLessonModal(lessonId);
+}
+
+async function viewLessonDetail(lessonId) {
+    const modal = document.getElementById('lesson-detail-modal');
+    const content = document.getElementById('lesson-detail-content');
+    const titleEl = document.getElementById('lesson-detail-title');
+    
+    content.innerHTML = '<div class="loading"><div class="spinner"></div><p>Đang tải...</p></div>';
+    modal.classList.add('show');
+    
+    try {
+        const lesson = await api(`/lessons/${lessonId}`);
+        titleEl.textContent = lesson.title;
+        
+        content.innerHTML = `
+            <div class="lesson-detail-info">
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-book"></i> Khóa học:</span>
+                    <span class="info-value">${lesson.course_title || 'N/A'}</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-sort-numeric-up"></i> Thứ tự:</span>
+                    <span class="info-value">${lesson.position || 1}</span>
+                </div>
+                ${lesson.video_url ? `
+                <div class="info-row">
+                    <span class="info-label"><i class="fas fa-video"></i> Video:</span>
+                    <a href="${lesson.video_url}" target="_blank" class="info-link">${lesson.video_url}</a>
+                </div>
+                ` : ''}
+            </div>
+            <div class="lesson-detail-section">
+                <h4><i class="fas fa-file-alt"></i> Nội dung bài học</h4>
+                <div class="lesson-content-box">
+                    ${lesson.content || '<p class="text-muted">Chưa có nội dung</p>'}
+                </div>
+            </div>
+            <div class="lesson-detail-actions">
+                <button class="btn btn-warning" onclick="closeLessonDetailModal(); editLesson(${lesson.id});">
+                    <i class="fas fa-edit"></i> Sửa bài học
+                </button>
+            </div>
+        `;
+    } catch (error) {
+        content.innerHTML = '<p class="text-muted">Lỗi khi tải chi tiết bài học</p>';
+    }
+}
+
+function closeLessonDetailModal() {
+    document.getElementById('lesson-detail-modal').classList.remove('show');
+}
+
+async function deleteLessonConfirm(lessonId) {
+    if (!confirm('Bạn có chắc muốn xóa bài học này? Hành động này không thể hoàn tác.')) return;
+    
+    try {
+        await api(`/lessons/${lessonId}`, { method: 'DELETE' });
+        showToast('Đã xóa bài học', 'success');
+        loadLessons();
+    } catch (error) {
+        showToast('Có lỗi xảy ra: ' + error.message, 'error');
+    }
+}
+
+// Setup Lesson form handler
+document.getElementById('lesson-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    
+    const lessonId = document.getElementById('lesson-id').value;
+    const data = {
+        course_id: document.getElementById('lesson-course').value,
+        title: document.getElementById('lesson-title').value,
+        content: document.getElementById('lesson-content').value,
+        video_url: document.getElementById('lesson-video').value,
+        position: parseInt(document.getElementById('lesson-position').value) || 1
+    };
+    
+    try {
+        if (lessonId) {
+            await api(`/lessons/${lessonId}`, {
+                method: 'PUT',
+                body: JSON.stringify(data)
+            });
+            showToast('Đã cập nhật bài học', 'success');
+        } else {
+            await api('/lessons', {
+                method: 'POST',
+                body: JSON.stringify(data)
+            });
+            showToast('Đã thêm bài học', 'success');
+        }
+        closeLessonModal();
+        
+        // Update filter to match course
+        document.getElementById('lesson-course-filter').value = data.course_id;
+        loadLessons();
+    } catch (error) {
+        showToast('Có lỗi xảy ra: ' + error.message, 'error');
+    }
+});

@@ -130,6 +130,62 @@ async function getLessonsByCourse(courseId) {
     return await api(`/lessons/course/${courseId}`);
 }
 
+// Lấy bài học theo ID
+async function getLessonById(id) {
+    return await api(`/lessons/${id}`);
+}
+
+// Tạo bài học (Admin)
+async function createLesson(lessonData) {
+    return await api('/lessons', {
+        method: 'POST',
+        body: JSON.stringify(lessonData)
+    });
+}
+
+// Cập nhật bài học (Admin)
+async function updateLesson(id, lessonData) {
+    return await api(`/lessons/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(lessonData)
+    });
+}
+
+// Xóa bài học (Admin)
+async function deleteLesson(id) {
+    return await api(`/lessons/${id}`, {
+        method: 'DELETE'
+    });
+}
+
+// Sắp xếp lại bài học (Admin)
+async function reorderLessons(courseId, lessons) {
+    return await api(`/lessons/reorder/${courseId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ lessons })
+    });
+}
+
+// Lấy tiến độ học tập
+async function getProgress(courseId) {
+    return await api(`/progress/course/${courseId}`);
+}
+
+// Cập nhật tiến độ bài học
+async function updateLessonProgress(lessonId, data) {
+    return await api(`/progress/lesson/${lessonId}`, {
+        method: 'POST',
+        body: JSON.stringify(data)
+    });
+}
+
+// Đánh dấu hoàn thành bài học
+async function markLessonComplete(lessonId) {
+    return await api(`/progress/lesson/${lessonId}/complete`, {
+        method: 'POST'
+    });
+}
+
 // Lấy khóa học của user
 async function getMyCourses() {
     return await api('/enrollments/my-courses');

@@ -41,6 +41,10 @@
                     <i class="fas fa-star"></i>
                     <span>Đánh giá</span>
                 </a>
+                <a href="#" class="nav-item" data-section="lessons">
+                    <i class="fas fa-play-circle"></i>
+                    <span>Bài học</span>
+                </a>
             </nav>
             <div class="admin-sidebar-footer">
                 <a href="index.html" class="nav-item">
@@ -275,6 +279,24 @@
                         </table>
                     </div>
                 </section>
+
+                <!-- Lessons Section -->
+                <section id="lessons-section" class="admin-section">
+                    <div class="section-header">
+                        <h2>Quản lý bài học</h2>
+                        <div class="section-actions">
+                            <select id="lesson-course-filter" class="filter-select" onchange="loadLessons()">
+                                <option value="">Chọn khóa học</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="showLessonModal()">
+                                <i class="fas fa-plus"></i> Thêm bài học
+                            </button>
+                        </div>
+                    </div>
+                    <div id="lessons-list-container" class="lessons-list-admin">
+                        <p class="empty-message">Vui lòng chọn khóa học để xem danh sách bài học</p>
+                    </div>
+                </section>
             </div>
         </main>
     </div>
@@ -336,6 +358,58 @@
                     <button type="submit" class="btn btn-primary">Lưu</button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Lesson Modal -->
+    <div id="lesson-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="lesson-modal-title">Thêm bài học</h3>
+                <button class="modal-close" onclick="closeLessonModal()">&times;</button>
+            </div>
+            <form id="lesson-form" class="modal-form">
+                <input type="hidden" id="lesson-id">
+                <div class="form-group">
+                    <label for="lesson-course">Khóa học <span class="required">*</span></label>
+                    <select id="lesson-course" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="lesson-title">Tiêu đề bài học <span class="required">*</span></label>
+                    <input type="text" id="lesson-title" required placeholder="VD: Bài 1 - Giới thiệu">
+                </div>
+                <div class="form-group">
+                    <label for="lesson-content">Nội dung bài học</label>
+                    <textarea id="lesson-content" rows="6" placeholder="Nhập nội dung bài học..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="lesson-video">URL Video</label>
+                        <input type="url" id="lesson-video" placeholder="https://youtube.com/...">
+                    </div>
+                    <div class="form-group">
+                        <label for="lesson-position">Thứ tự</label>
+                        <input type="number" id="lesson-position" min="1" value="1">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeLessonModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lesson Detail Modal -->
+    <div id="lesson-detail-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h3 id="lesson-detail-title">Chi tiết bài học</h3>
+                <button class="modal-close" onclick="closeLessonDetailModal()">&times;</button>
+            </div>
+            <div id="lesson-detail-content" class="lesson-detail-content">
+                <!-- Nội dung chi tiết bài học -->
+            </div>
         </div>
     </div>
 

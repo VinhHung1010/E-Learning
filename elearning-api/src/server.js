@@ -7,6 +7,7 @@ const courseRoutes = require('./routes/courseRoutes');
 const lessonRoutes = require('./routes/lessonRoutes');
 const enrollmentRoutes = require('./routes/enrollmentRoutes');
 const reviewRoutes = require('./routes/reviewRoutes');
+const progressRoutes = require('./routes/progressRoutes');
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/lessons', lessonRoutes);
 app.use('/api/enrollments', enrollmentRoutes);
 app.use('/api/reviews', reviewRoutes);
+app.use('/api/progress', progressRoutes);
 
 app.get('/api/health', (req, res) => {
     res.json({ status: 'OK', message: 'E-Learning API is running' });

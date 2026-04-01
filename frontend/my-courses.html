@@ -106,13 +106,13 @@
                 }
                 
                 container.innerHTML = enrollments.map(enrollment => `
-                    <div class="course-card">
+                    <div class="course-card enrolled-card">
                         <div class="course-thumb">
                             ${enrollment.course_thumbnail ? 
                                 `<img src="${enrollment.course_thumbnail}" alt="${enrollment.course_title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
                                 ''}
                             <i class="fas fa-book" style="${enrollment.course_thumbnail ? 'display:none' : ''}"></i>
-                            ${enrollment.status === 'active' ? '<span class="course-badge" style="background: var(--secondary);">Đang học</span>' : ''}
+                            <span class="course-badge ${enrollment.status === 'active' ? 'active' : 'pending'}">${enrollment.status === 'active' ? 'Đang học' : enrollment.status === 'pending' ? 'Chờ xác nhận' : enrollment.status}</span>
                         </div>
                         <div class="course-content">
                             <span class="course-category" style="background: ${enrollment.status === 'active' ? '#d1fae5' : '#fef3c7'}; color: ${enrollment.status === 'active' ? '#065f46' : '#92400e'};">
@@ -122,16 +122,43 @@
                                 <a href="course-detail.html?id=${enrollment.course_id}">${enrollment.course_title || 'Khóa học'}</a>
                             </h3>
                             <p class="course-desc">${enrollment.course_description || 'Không có mô tả'}</p>
+                            
+                            <!-- Progress Section -->
+                            <div class="course-progress" id="progress-${enrollment.course_id}">
+                                <div class="progress-info">
+                                    <span class="progress-label">Tiến độ</span>
+                                    <span class="progress-percent" id="percent-${enrollment.course_id}">--</span>
+                                </div>
+                                <div class="progress-bar-mini">
+                                    <div class="progress-bar-mini-fill" id="fill-${enrollment.course_id}" style="width: 0%"></div>
+                                </div>
+                                <div class="progress-detail" id="detail-${enrollment.course_id}">
+                                    <span>0/0 bài học</span>
+                                </div>
+                            </div>
+                            
                             <div class="course-footer">
                                 <span class="course-price free">${formatPrice(enrollment.course_price || 0)}</span>
-                                <span class="course-meta">
-                                    <i class="fas fa-calendar"></i>
-                                    ${new Date(enrollment.enrolled_at || enrollment.created_at).toLocaleDateString('vi-VN')}
-                                </span>
+                                ${enrollment.status === 'active' ? 
+                                    `<a href="lesson-player.html?course=${enrollment.course_id}" class="btn btn-primary btn-sm">
+                                        <i class="fas fa-play"></i> Tiếp tục học
+                                    </a>` : 
+                                    `<span class="course-meta">
+                                        <i class="fas fa-calendar"></i>
+                                        ${new Date(enrollment.enrolled_at || enrollment.created_at).toLocaleDateString('vi-VN')}
+                                    </span>`
+                                }
                             </div>
                         </div>
                     </div>
                 `).join('');
+                
+                // Load progress for each course
+                enrollments.forEach(enrollment => {
+                    if (enrollment.status === 'active') {
+                        loadCourseProgress(enrollment.course_id);
+                    }
+                });
             } catch (error) {
                 container.innerHTML = `
                     <div class="alert alert-error" style="grid-column: 1/-1;">
@@ -144,6 +171,72 @@
 
         updateAuthNav();
         loadMyCourses();
+        
+        async function loadCourseProgress(courseId) {
+            try {
+                const lessons = await getLessonsByCourse(courseId);
+                const progress = await getProgress(courseId);
+                
+                const total = lessons.length;
+                const completed = progress.filter(p => p.is_completed).length;
+                const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
+                
+                document.getElementById(`percent-${courseId}`).textContent = `${percent}%`;
+                document.getElementById(`fill-${courseId}`).style.width = `${percent}%`;
+                document.getElementById(`detail-${courseId}`).innerHTML = `<span>${completed}/${total} bài học</span>`;
+            } catch (error) {
+                console.error('Error loading progress:', error);
+                document.getElementById(`percent-${courseId}`).textContent = '0%';
+                document.getElementById(`detail-${courseId}`).innerHTML = `<span>Chưa có dữ liệu</span>`;
+            }
+        }
     </script>
+    <style>
+        .course-progress {
+            background: #f9fafb;
+            padding: 12px 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+        }
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+        .progress-label {
+            color: #6b7280;
+        }
+        .progress-percent {
+            font-weight: 600;
+            color: #10b981;
+        }
+        .progress-bar-mini {
+            height: 6px;
+            background: #e5e7eb;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        .progress-bar-mini-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        .progress-detail {
+            margin-top: 6px;
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+        .enrolled-card .course-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .enrolled-card .btn-sm {
+            padding: 8px 16px;
+            font-size: 0.85rem;
+        }
+    </style>
 </body>
 </html>

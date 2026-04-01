@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học bài - E-Learning</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .player-container {
+            display: flex;
+            min-height: calc(100vh - 80px);
+        }
+        
+        /* Sidebar - Danh sách bài học */
+        .player-sidebar {
+            width: 350px;
+            background: #fff;
+            border-right: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 80px);
+            position: sticky;
+            top: 80px;
+        }
+        
+        .player-sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        .player-sidebar-header h3 {
+            margin: 0 0 5px 0;
+            font-size: 1.1rem;
+        }
+        
+        .player-sidebar-header a {
+            color: rgba(255,255,255,0.8);
+            font-size: 0.9rem;
+            text-decoration: none;
+        }
+        
+        .player-sidebar-header a:hover {
+            color: white;
+        }
+        
+        .progress-bar-container {
+            margin-top: 10px;
+        }
+        
+        .progress-bar-bg {
+            height: 6px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+        
+        .progress-bar-fill {
+            height: 100%;
+            background: #10b981;
+            border-radius: 3px;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-text {
+            font-size: 0.8rem;
+            margin-top: 5px;
+            opacity: 0.9;
+        }
+        
+        .lessons-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px 0;
+        }
+        
+        .lesson-item-sidebar {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .lesson-item-sidebar:hover {
+            background: #f3f4f6;
+        }
+        
+        .lesson-item-sidebar.active {
+            background: #eef2ff;
+            border-left-color: #667eea;
+        }
+        
+        .lesson-item-sidebar.completed {
+            background: #f0fdf4;
+        }
+        
+        .lesson-item-sidebar.completed.active {
+            background: #dcfce7;
+            border-left-color: #10b981;
+        }
+        
+        .lesson-number-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            color: #6b7280;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+            flex-shrink: 0;
+            margin-right: 12px;
+        }
+        
+        .lesson-item-sidebar.active .lesson-number-badge {
+            background: #667eea;
+            color: white;
+        }
+        
+        .lesson-item-sidebar.completed .lesson-number-badge {
+            background: #10b981;
+            color: white;
+        }
+        
+        .lesson-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .lesson-item-info h4 {
+            margin: 0;
+            font-size: 0.95rem;
+            font-weight: 500;
+            color: #374151;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .lesson-item-sidebar.active .lesson-item-info h4 {
+            color: #667eea;
+        }
+        
+        .lesson-item-info p {
+            margin: 3px 0 0 0;
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+        
+        .lesson-check-icon {
+            color: #10b981;
+            margin-left: 10px;
+        }
+        
+        /* Main Content */
+        .player-main {
+            flex: 1;
+            background: #f9fafb;
+            padding: 30px;
+            overflow-y: auto;
+            height: calc(100vh - 80px);
+        }
+        
+        .lesson-content-wrapper {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        
+        /* Video Player */
+        .video-container {
+            background: #000;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            position: relative;
+            aspect-ratio: 16/9;
+        }
+        
+        .video-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: #9ca3af;
+        }
+        
+        .video-placeholder i {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+        
+        .video-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+        
+        /* Lesson Header */
+        .lesson-header {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .lesson-breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            color: #6b7280;
+            margin-bottom: 10px;
+        }
+        
+        .lesson-breadcrumb a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        
+        .lesson-breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        
+        .lesson-header h1 {
+            margin: 0 0 15px 0;
+            font-size: 1.8rem;
+            color: #1f2937;
+        }
+        
+        .lesson-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .lesson-nav-buttons {
+            display: flex;
+            gap: 10px;
+            margin-left: auto;
+        }
+        
+        /* Lesson Body */
+        .lesson-body {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+        }
+        
+        .lesson-body h2 {
+            margin-top: 0;
+            font-size: 1.3rem;
+            color: #1f2937;
+            margin-bottom: 20px;
+        }
+        
+        .lesson-body p {
+            line-height: 1.8;
+            color: #4b5563;
+            margin-bottom: 15px;
+        }
+        
+        .lesson-body ul, .lesson-body ol {
+            margin-bottom: 15px;
+            padding-left: 25px;
+        }
+        
+        .lesson-body li {
+            line-height: 1.8;
+            color: #4b5563;
+            margin-bottom: 8px;
+        }
+        
+        .lesson-body code {
+            background: #f3f4f6;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #7c3aed;
+        }
+        
+        .lesson-body pre {
+            background: #1f2937;
+            color: #e5e7eb;
+            padding: 20px;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin-bottom: 20px;
+        }
+        
+        .lesson-body pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+        }
+        
+        /* Mark Complete Button */
+        .mark-complete-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            background: #10b981;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .mark-complete-btn:hover {
+            background: #059669;
+            transform: translateY(-1px);
+        }
+        
+        .mark-complete-btn.completed {
+            background: #6b7280;
+        }
+        
+        .mark-complete-btn.completed:hover {
+            background: #4b5563;
+        }
+        
+        /* Navigation */
+        .lesson-navigation {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: #f3f4f6;
+            color: #374151;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+        
+        .nav-btn:hover:not(:disabled) {
+            background: #e5e7eb;
+        }
+        
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .nav-btn.next {
+            background: #667eea;
+            color: white;
+        }
+        
+        .nav-btn.next:hover:not(:disabled) {
+            background: #5a67d8;
+        }
+        
+        .nav-info {
+            text-align: center;
+        }
+        
+        .nav-info span {
+            font-size: 0.85rem;
+            color: #6b7280;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .player-container {
+                flex-direction: column;
+            }
+            
+            .player-sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                top: 0;
+                max-height: 300px;
+            }
+            
+            .player-main {
+                height: auto;
+                padding: 15px;
+            }
+            
+            .lesson-header h1 {
+                font-size: 1.4rem;
+            }
+            
+            .lesson-actions {
+                flex-direction: column;
+            }
+            
+            .lesson-nav-buttons {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .nav-btn {
+                flex: 1;
+                justify-content: center;
+            }
+        }
+        
+        /* Empty/No lesson state */
+        .no-lesson-selected {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #6b7280;
+            text-align: center;
+        }
+        
+        .no-lesson-selected i {
+            font-size: 4rem;
+            margin-bottom: 20px;
+            color: #d1d5db;
+        }
+        
+        .no-lesson-selected h2 {
+            margin-bottom: 10px;
+            color: #374151;
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                <span>E-Learning</span>
+            </a>
+            <nav class="nav">
+                <ul class="nav-links">
+                    <li><a href="index.html">Trang chủ</a></li>
+                    <li><a href="courses.html">Khóa học</a></li>
+                    <li><a href="my-courses.html" class="active">Khóa học của tôi</a></li>
+                </ul>
+                <div class="nav-auth" id="nav-auth"></div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="player-container">
+            <!-- Sidebar -->
+            <aside class="player-sidebar">
+                <div class="player-sidebar-header">
+                    <a href="my-courses.html"><i class="fas fa-arrow-left"></i> Quay lại khóa học</a>
+                    <h3 id="course-title">Đang tải...</h3>
+                    <div class="progress-bar-container">
+                        <div class="progress-bar-bg">
+                            <div class="progress-bar-fill" id="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <p class="progress-text" id="progress-text">0% hoàn thành</p>
+                    </div>
+                </div>
+                <div class="lessons-list" id="lessons-list">
+                    <p style="padding: 20px; color: #6b7280;">Đang tải danh sách bài học...</p>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <div class="player-main" id="player-main">
+                <div class="no-lesson-selected">
+                    <i class="fas fa-play-circle"></i>
+                    <h2>Chọn bài học để bắt đầu</h2>
+                    <p>Click vào bài học trong danh sách bên trái để bắt đầu học</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="js/api.js"></script>
+    <script>
+        let currentCourse = null;
+        let currentLesson = null;
+        let lessons = [];
+        let progressMap = {};
+        
+        // Get params from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const courseId = urlParams.get('course');
+        const lessonId = urlParams.get('lesson');
+        
+        // Auth check
+        if (!auth.isLoggedIn()) {
+            window.location.href = 'login.html';
+        }
+        
+        async function init() {
+            if (!courseId) {
+                window.location.href = 'my-courses.html';
+                return;
+            }
+            
+            updateAuthNav();
+            await loadCourseData();
+            await loadLessons();
+            await loadProgress();
+            
+            // Load specific lesson or first lesson
+            if (lessonId) {
+                await loadLesson(lessonId);
+            } else if (lessons.length > 0) {
+                await loadLesson(lessons[0].id);
+            }
+        }
+        
+        async function loadCourseData() {
+            try {
+                currentCourse = await api(`/courses/${courseId}`);
+                document.getElementById('course-title').textContent = currentCourse.title;
+            } catch (error) {
+                console.error('Error loading course:', error);
+                document.getElementById('course-title').textContent = 'Không tìm thấy khóa học';
+            }
+        }
+        
+        async function loadLessons() {
+            const container = document.getElementById('lessons-list');
+            
+            try {
+                lessons = await api(`/lessons/course/${courseId}`);
+                
+                if (lessons.length === 0) {
+                    container.innerHTML = `
+                        <div style="padding: 20px; text-align: center; color: #6b7280;">
+                            <i class="fas fa-inbox" style="font-size: 2rem; display: block; margin-bottom: 10px;"></i>
+                            <p>Khóa học này chưa có bài học nào.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                renderLessonsList();
+            } catch (error) {
+                console.error('Error loading lessons:', error);
+                container.innerHTML = '<p style="padding: 20px; color: #ef4444;">Lỗi khi tải bài học</p>';
+            }
+        }
+        
+        async function loadProgress() {
+            try {
+                const progress = await api(`/progress/course/${courseId}`);
+                
+                progressMap = {};
+                progress.forEach(p => {
+                    progressMap[p.lesson_id] = p;
+                });
+                
+                updateProgressBar();
+                renderLessonsList();
+            } catch (error) {
+                console.error('Error loading progress:', error);
+            }
+        }
+        
+        function updateProgressBar() {
+            const completed = lessons.filter(l => progressMap[l.id]?.is_completed).length;
+            const percent = lessons.length > 0 ? Math.round((completed / lessons.length) * 100) : 0;
+            
+            document.getElementById('progress-fill').style.width = `${percent}%`;
+            document.getElementById('progress-text').textContent = 
+                `${percent}% hoàn thành (${completed}/${lessons.length} bài)`;
+        }
+        
+        function renderLessonsList() {
+            const container = document.getElementById('lessons-list');
+            
+            container.innerHTML = lessons.map((lesson, index) => {
+                const isCompleted = progressMap[lesson.id]?.is_completed;
+                const isActive = currentLesson?.id === lesson.id;
+                
+                let classes = 'lesson-item-sidebar';
+                if (isActive) classes += ' active';
+                if (isCompleted) classes += ' completed';
+                
+                return `
+                    <div class="${classes}" onclick="loadLesson(${lesson.id})">
+                        <div class="lesson-number-badge">
+                            ${isCompleted ? '<i class="fas fa-check"></i>' : (index + 1)}
+                        </div>
+                        <div class="lesson-item-info">
+                            <h4>${lesson.title}</h4>
+                            <p>${isCompleted ? 'Đã hoàn thành' : 'Chưa hoàn thành'}</p>
+                        </div>
+                        ${isCompleted ? '<i class="fas fa-check-circle lesson-check-icon"></i>' : ''}
+                    </div>
+                `;
+            }).join('');
+        }
+        
+        async function loadLesson(id) {
+            const container = document.getElementById('player-main');
+            const lessonIndex = lessons.findIndex(l => l.id === parseInt(id));
+            
+            if (lessonIndex === -1) return;
+            
+            try {
+                currentLesson = await api(`/lessons/${id}`);
+                const isCompleted = progressMap[id]?.is_completed;
+                
+                // Update sidebar active state
+                document.querySelectorAll('.lesson-item-sidebar').forEach((el, idx) => {
+                    el.classList.toggle('active', lessons[idx].id === parseInt(id));
+                });
+                
+                // Get YouTube video ID if available
+                let videoEmbed = '';
+                if (currentLesson.video_url) {
+                    const videoId = extractYouTubeId(currentLesson.video_url);
+                    if (videoId) {
+                        videoEmbed = `
+                            <div class="video-container">
+                                <iframe 
+                                    src="https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1" 
+                                    allowfullscreen>
+                                </iframe>
+                            </div>
+                        `;
+                    } else {
+                        videoEmbed = `
+                            <div class="video-container">
+                                <a href="${currentLesson.video_url}" target="_blank" class="video-placeholder">
+                                    <i class="fas fa-play-circle"></i>
+                                    <p>Mở video</p>
+                                    <span style="font-size: 0.8rem; margin-top: 5px;">${currentLesson.video_url}</span>
+                                </a>
+                            </div>
+                        `;
+                    }
+                }
+                
+                const prevLesson = lessonIndex > 0 ? lessons[lessonIndex - 1] : null;
+                const nextLesson = lessonIndex < lessons.length - 1 ? lessons[lessonIndex + 1] : null;
+                
+                container.innerHTML = `
+                    <div class="lesson-content-wrapper">
+                        ${videoEmbed}
+                        
+                        <div class="lesson-header">
+                            <div class="lesson-breadcrumb">
+                                <a href="course-detail.html?id=${courseId}">${currentCourse.title}</a>
+                                <i class="fas fa-chevron-right"></i>
+                                <span>Bài ${lessonIndex + 1}</span>
+                            </div>
+                            <h1>${currentLesson.title}</h1>
+                            <div class="lesson-actions">
+                                <button onclick="toggleComplete(${id})" class="mark-complete-btn ${isCompleted ? 'completed' : ''}">
+                                    <i class="fas ${isCompleted ? 'fa-check-circle' : 'fa-circle'}"></i>
+                                    ${isCompleted ? 'Đã hoàn thành' : 'Đánh dấu hoàn thành'}
+                                </button>
+                                <div class="lesson-nav-buttons">
+                                    <button class="nav-btn prev" ${!prevLesson ? 'disabled' : ''} onclick="loadLesson(${prevLesson?.id || 0})">
+                                        <i class="fas fa-chevron-left"></i>
+                                        <span>Bài trước</span>
+                                    </button>
+                                    <button class="nav-btn next" ${!nextLesson ? 'disabled' : ''} onclick="loadLesson(${nextLesson?.id || 0})">
+                                        <span>Bài tiếp theo</span>
+                                        <i class="fas fa-chevron-right"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        ${currentLesson.content ? `
+                        <div class="lesson-body">
+                            <h2><i class="fas fa-book-open"></i> Nội dung bài học</h2>
+                            <div class="lesson-content-text">${formatContent(currentLesson.content)}</div>
+                        </div>
+                        ` : ''}
+                        
+                        <div class="lesson-navigation">
+                            <a href="course-detail.html?id=${courseId}" class="nav-btn">
+                                <i class="fas fa-arrow-left"></i>
+                                <span>Quay lại khóa học</span>
+                            </a>
+                            <div class="nav-info">
+                                <span>Bài ${lessonIndex + 1} / ${lessons.length}</span>
+                            </div>
+                            <button class="nav-btn next" ${!nextLesson ? 'disabled' : ''} onclick="loadLesson(${nextLesson?.id || 0})">
+                                <span>Bài tiếp theo</span>
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                // Update URL without reload
+                history.pushState({}, '', `?course=${courseId}&lesson=${id}`);
+                
+            } catch (error) {
+                console.error('Error loading lesson:', error);
+                container.innerHTML = `
+                    <div class="no-lesson-selected">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <h2>Lỗi khi tải bài học</h2>
+                        <p>Vui lòng thử lại sau.</p>
+                    </div>
+                `;
+            }
+        }
+        
+        async function toggleComplete(lessonId) {
+            try {
+                const isCompleted = progressMap[lessonId]?.is_completed;
+                
+                if (isCompleted) {
+                    // Already completed - just refresh
+                    await loadProgress();
+                } else {
+                    await api(`/progress/lesson/${lessonId}/complete`, { method: 'POST' });
+                    progressMap[lessonId] = { lesson_id: lessonId, is_completed: true };
+                }
+                
+                updateProgressBar();
+                renderLessonsList();
+                
+                // Update button state
+                const btn = document.querySelector('.mark-complete-btn');
+                if (btn) {
+                    btn.className = `mark-complete-btn ${!isCompleted ? 'completed' : ''}`;
+                    btn.innerHTML = `
+                        <i class="fas ${!isCompleted ? 'fa-check-circle' : 'fa-circle'}"></i>
+                        ${!isCompleted ? 'Đã hoàn thành' : 'Bỏ đánh dấu'}
+                    `;
+                }
+                
+                // Show toast
+                showToast(!isCompleted ? 'Đã đánh dấu hoàn thành!' : 'Đã bỏ đánh dấu');
+                
+            } catch (error) {
+                console.error('Error toggling complete:', error);
+                showToast('Có lỗi xảy ra', 'error');
+            }
+        }
+        
+        function extractYouTubeId(url) {
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = url.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : null;
+        }
+        
+        function formatContent(content) {
+            // Simple formatting - convert newlines to <br> and handle code blocks
+            if (!content) return '';
+            
+            // Handle code blocks (```code```)
+            content = content.replace(/```([\s\S]*?)```/g, '<pre><code>$1</code></pre>');
+            
+            // Handle inline code (`code`)
+            content = content.replace(/`([^`]+)`/g, '<code>$1</code>');
+            
+            // Convert newlines to <br>
+            content = content.replace(/\n/g, '<br>');
+            
+            return content;
+        }
+        
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'toast success show';
+            toast.innerHTML = `<i class="fas fa-check-circle"></i> ${message}`;
+            toast.style.cssText = `
+                position: fixed;
+                bottom: 20px;
+                right: 20px;
+                background: #10b981;
+                color: white;
+                padding: 15px 25px;
+                border-radius: 8px;
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                z-index: 9999;
+                animation: slideIn 0.3s ease;
+            `;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+        
+        // Add animation styles
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(100%); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Init
+        init();
+    </script>
+</body>
+</html>
