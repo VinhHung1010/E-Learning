@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tất cả khóa học - E-Learning</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                <span>E-Learning</span>
+            </a>
+            <nav class="nav">
+                <ul class="nav-links">
+                    <li><a href="index.html">Trang chủ</a></li>
+                    <li><a href="courses.html" class="active">Khóa học</a></li>
+                </ul>
+                <div class="nav-auth">
+                    <a href="login.html" class="btn btn-login">Đăng nhập</a>
+                    <a href="register.html" class="btn btn-register">Đăng ký</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Khám phá khóa học</h2>
+                <p class="section-subtitle">Tìm kiếm khóa học phù hợp với bạn</p>
+            </div>
+            
+            <div class="filters">
+                <div class="filter-grid">
+                    <div class="form-group">
+                        <label for="search"><i class="fas fa-search"></i> Tìm kiếm</label>
+                        <input type="text" id="search" placeholder="Tìm khóa học...">
+                    </div>
+                    <div class="form-group">
+                        <label for="category"><i class="fas fa-folder"></i> Danh mục</label>
+                        <select id="category">
+                            <option value="">Tất cả danh mục</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="price"><i class="fas fa-tag"></i> Giá</label>
+                        <select id="price">
+                            <option value="">Tất cả</option>
+                            <option value="free">Miễn phí</option>
+                            <option value="paid">Có phí</option>
+                        </select>
+                    </div>
+                    <div>
+                        <button onclick="loadCourses()" class="btn btn-primary btn-lg" style="margin-top: 22px;">
+                            <i class="fas fa-filter"></i> Lọc
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="courses-list" class="course-grid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Đang tải khóa học...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                        <span>E-Learning</span>
+                    </a>
+                    <p>Nền tảng học trực tuyến hàng đầu Việt Nam.</p>
+                    <div class="footer-social">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-title">Khóa học</h4>
+                    <ul class="footer-links">
+                        <li><a href="courses.html">Tất cả khóa học</a></li>
+                        <li><a href="courses.html">Khóa học miễn phí</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-title">Hỗ trợ</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Trung tâm trợ giúp</a></li>
+                        <li><a href="#">Liên hệ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-title">Về chúng tôi</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Giới thiệu</a></li>
+                        <li><a href="#">Điều khoản</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 E-Learning. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        async function loadCategories() {
+            try {
+                const categories = await getCategories();
+                const select = document.getElementById('category');
+                categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat.id;
+                    option.textContent = cat.name;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading categories:', error);
+            }
+        }
+
+        async function loadCourses() {
+            const container = document.getElementById('courses-list');
+            container.innerHTML = '<div class="loading"><div class="spinner"></div><p>Đang tải khóa học...</p></div>';
+            
+            try {
+                const search = document.getElementById('search').value;
+                const category_id = document.getElementById('category').value;
+                const price = document.getElementById('price').value;
+                
+                const filters = {};
+                if (search) filters.search = search;
+                if (category_id) filters.category_id = category_id;
+                if (price === 'free') filters.max_price = 0;
+                if (price === 'paid') filters.min_price = 1;
+                
+                const courses = await getCourses(filters);
+                
+                if (courses.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1/-1;">
+                            <div class="empty-state-icon"><i class="fas fa-search"></i></div>
+                            <h3>Không tìm thấy khóa học</h3>
+                            <p>Thử thay đổi bộ lọc để tìm kiếm khóa học khác.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = courses.map(course => `
+                    <div class="course-card">
+                        <div class="course-thumb">
+                            <i class="fas fa-book"></i>
+                            ${course.price == 0 ? '<span class="course-badge">Miễn phí</span>' : ''}
+                        </div>
+                        <div class="course-content">
+                            <span class="course-category">${course.category_name || 'Chưa phân loại'}</span>
+                            <h3 class="course-title">
+                                <a href="course-detail.html?id=${course.id}">${course.title}</a>
+                            </h3>
+                            <p class="course-desc">${course.description || 'Không có mô tả'}</p>
+                            <div class="course-footer">
+                                <span class="course-price ${course.price == 0 ? 'free' : ''}">${formatPrice(course.price)}</span>
+                                <span class="course-meta">
+                                    <i class="fas fa-book"></i>
+                                    ${course.lesson_count || 0}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="alert alert-error" style="grid-column: 1/-1;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Không thể tải khóa học. Vui lòng thử lại sau.
+                    </div>
+                `;
+            }
+        }
+
+        document.getElementById('search').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                loadCourses();
+            }
+        });
+
+        updateAuthNav();
+        loadCategories();
+        loadCourses();
+    </script>
+</body>
+</html>

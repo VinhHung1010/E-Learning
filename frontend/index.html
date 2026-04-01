@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Learning - Học Online Mọi Lúc Mọi Nơi</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                <span>E-Learning</span>
+            </a>
+            <nav class="nav">
+                <ul class="nav-links">
+                    <li><a href="index.html" class="active">Trang chủ</a></li>
+                    <li><a href="courses.html">Khóa học</a></li>
+                </ul>
+                <div class="nav-auth">
+                    <a href="login.html" class="btn btn-login">Đăng nhập</a>
+                    <a href="register.html" class="btn btn-register">Đăng ký</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <section class="hero">
+                <div class="hero-content">
+                    <h1>Học Online Mọi Lúc Mọi Nơi</h1>
+                    <p>Nền tảng học trực tuyến với hàng trăm khóa học chất lượng cao từ các chuyên gia hàng đầu</p>
+                    <div class="hero-btns">
+                        <a href="courses.html" class="btn btn-secondary btn-lg"><i class="fas fa-search"></i> Khám phá khóa học</a>
+                        <a href="register.html" class="btn btn-outline btn-lg"><i class="fas fa-user-plus"></i> Đăng ký miễn phí</a>
+                    </div>
+                </div>
+            </section>
+
+            <div class="section-header">
+                <h2 class="section-title">Khóa học nổi bật</h2>
+                <p class="section-subtitle">Những khóa học được yêu thích nhất, cập nhật liên tục</p>
+            </div>
+
+            <div id="featured-courses" class="course-grid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Đang tải khóa học...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                        <span>E-Learning</span>
+                    </a>
+                    <p>Nền tảng học trực tuyến hàng đầu Việt Nam, giúp bạn tiếp cận kiến thức mọi lúc, mọi nơi với chi phí hợp lý.</p>
+                    <div class="footer-social">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-title">Khóa học</h4>
+                    <ul class="footer-links">
+                        <li><a href="courses.html">Tất cả khóa học</a></li>
+                        <li><a href="courses.html">Khóa học miễn phí</a></li>
+                        <li><a href="courses.html">Khóa học bán chạy</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-title">Hỗ trợ</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Trung tâm trợ giúp</a></li>
+                        <li><a href="#">Liên hệ</a></li>
+                        <li><a href="#">Câu hỏi thường gặp</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-title">Về chúng tôi</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Giới thiệu</a></li>
+                        <li><a href="#">Điều khoản sử dụng</a></li>
+                        <li><a href="#">Chính sách bảo mật</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 E-Learning. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        async function loadFeaturedCourses() {
+            const container = document.getElementById('featured-courses');
+            
+            try {
+                const courses = await getFeaturedCourses(8);
+                
+                if (courses.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="grid-column: 1/-1;">
+                            <div class="empty-state-icon"><i class="fas fa-book-open"></i></div>
+                            <h3>Chưa có khóa học nào</h3>
+                            <p>Hãy là người đầu tiên đăng ký khóa học!</p>
+                            <a href="register.html" class="btn btn-primary">Đăng ký ngay</a>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                container.innerHTML = courses.map(course => `
+                    <div class="course-card">
+                        <div class="course-thumb">
+                            <i class="fas fa-book"></i>
+                            ${course.price == 0 ? '<span class="course-badge">Miễn phí</span>' : ''}
+                        </div>
+                        <div class="course-content">
+                            <span class="course-category">${course.category_name || 'Chưa phân loại'}</span>
+                            <h3 class="course-title">
+                                <a href="course-detail.html?id=${course.id}">${course.title}</a>
+                            </h3>
+                            <p class="course-desc">${course.description || 'Không có mô tả'}</p>
+                            <div class="course-footer">
+                                <span class="course-price ${course.price == 0 ? 'free' : ''}">${formatPrice(course.price)}</span>
+                                <span class="course-meta">
+                                    <i class="fas fa-star"></i>
+                                    ${course.lesson_count || 0} bài học
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="alert alert-error" style="grid-column: 1/-1;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Không thể tải khóa học. Vui lòng kiểm tra server API đang chạy.
+                    </div>
+                `;
+            }
+        }
+
+        updateAuthNav();
+        loadFeaturedCourses();
+    </script>
+</body>
+</html>

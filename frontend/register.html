@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký - E-Learning</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                <span>E-Learning</span>
+            </a>
+            <nav class="nav">
+                <ul class="nav-links">
+                    <li><a href="index.html">Trang chủ</a></li>
+                    <li><a href="courses.html">Khóa học</a></li>
+                </ul>
+                <div class="nav-auth">
+                    <a href="login.html" class="btn btn-login">Đăng nhập</a>
+                    <a href="register.html" class="btn btn-register">Đăng ký</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="form-container">
+                <h1><i class="fas fa-user-plus" style="color: var(--primary);"></i> Đăng ký tài khoản</h1>
+                <p class="subtitle">Tham gia cùng hàng nghìn học viên</p>
+                
+                <form id="register-form">
+                    <div class="form-group">
+                        <label for="name"><i class="fas fa-user"></i> Họ và tên</label>
+                        <input type="text" id="name" name="name" required placeholder="Nhập họ và tên của bạn">
+                    </div>
+                    <div class="form-group">
+                        <label for="email"><i class="fas fa-envelope"></i> Email</label>
+                        <input type="email" id="email" name="email" required placeholder="Nhập email của bạn">
+                    </div>
+                    <div class="form-group">
+                        <label for="password"><i class="fas fa-lock"></i> Mật khẩu</label>
+                        <input type="password" id="password" name="password" required placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)">
+                    </div>
+                    <div class="form-group">
+                        <label for="confirm-password"><i class="fas fa-lock"></i> Xác nhận mật khẩu</label>
+                        <input type="password" id="confirm-password" name="confirm-password" required placeholder="Nhập lại mật khẩu">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block btn-lg">
+                        <i class="fas fa-user-plus"></i> Đăng ký
+                    </button>
+                </form>
+                
+                <div class="form-footer">
+                    <p>Đã có tài khoản? <a href="login.html">Đăng nhập ngay</a></p>
+                    <p><a href="index.html"><i class="fas fa-arrow-left"></i> Quay về trang chủ</a></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; 2024 E-Learning. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        if (redirectIfLoggedIn()) {}
+
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            if (password !== confirmPassword) {
+                showAlert('Mật khẩu xác nhận không khớp!', 'error');
+                return;
+            }
+            
+            if (password.length < 6) {
+                showAlert('Mật khẩu phải có ít nhất 6 ký tự!', 'error');
+                return;
+            }
+            
+            const btn = e.target.querySelector('button');
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang đăng ký...';
+            btn.disabled = true;
+            
+            try {
+                const data = await register(name, email, password);
+                auth.setAuth(data.token, data.user);
+                showAlert('Đăng ký thành công! Đang chuyển trang...', 'success');
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 1500);
+            } catch (error) {
+                showAlert(error.message, 'error');
+                btn.innerHTML = '<i class="fas fa-user-plus"></i> Đăng ký';
+                btn.disabled = false;
+            }
+        });
+
+        updateAuthNav();
+    </script>
+</body>
+</html>

@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết khóa học - E-Learning</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                <span>E-Learning</span>
+            </a>
+            <nav class="nav">
+                <ul class="nav-links">
+                    <li><a href="index.html">Trang chủ</a></li>
+                    <li><a href="courses.html">Khóa học</a></li>
+                </ul>
+                <div class="nav-auth">
+                    <a href="login.html" class="btn btn-login">Đăng nhập</a>
+                    <a href="register.html" class="btn btn-register">Đăng ký</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div id="course-detail" class="course-detail">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Đang tải thông tin khóa học...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                        <span>E-Learning</span>
+                    </a>
+                    <p>Nền tảng học trực tuyến hàng đầu Việt Nam.</p>
+                    <div class="footer-social">
+                        <a href="#"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                    </div>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-title">Khóa học</h4>
+                    <ul class="footer-links">
+                        <li><a href="courses.html">Tất cả khóa học</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-title">Hỗ trợ</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Liên hệ</a></li>
+                    </ul>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-title">Về chúng tôi</h4>
+                    <ul class="footer-links">
+                        <li><a href="#">Giới thiệu</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 E-Learning. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        async function loadCourseDetail() {
+            const container = document.getElementById('course-detail');
+            const urlParams = new URLSearchParams(window.location.search);
+            const courseId = urlParams.get('id');
+            
+            if (!courseId) {
+                container.innerHTML = `
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-circle"></i> Không tìm thấy ID khóa học!
+                    </div>
+                `;
+                return;
+            }
+            
+            try {
+                const course = await getCourseById(courseId);
+                
+                container.innerHTML = `
+                    <div class="course-detail-header">
+                        <div class="course-detail-thumb">
+                            <i class="fas fa-book"></i>
+                        </div>
+                        <div class="course-detail-info">
+                            <h1>${course.title}</h1>
+                            <div class="course-meta">
+                                <div class="course-meta-item">
+                                    <i class="fas fa-folder"></i>
+                                    <span>${course.category_name || 'Chưa phân loại'}</span>
+                                </div>
+                                <div class="course-meta-item">
+                                    <i class="fas fa-book"></i>
+                                    <span>${course.lesson_count || 0} bài học</span>
+                                </div>
+                            </div>
+                            <div class="course-price-large ${course.price == 0 ? 'free' : ''}">
+                                ${formatPrice(course.price)}
+                            </div>
+                            ${auth.isLoggedIn() ? 
+                                `<button onclick="doEnrollCourse(${course.id})" class="btn btn-primary btn-lg btn-block">
+                                    <i class="fas fa-graduation-cap"></i> Đăng ký khóa học
+                                </button>` :
+                                `<a href="login.html" class="btn btn-primary btn-lg btn-block">
+                                    <i class="fas fa-sign-in-alt"></i> Đăng nhập để đăng ký
+                                </a>`
+                            }
+                        </div>
+                    </div>
+                    <div class="course-desc-full">
+                        <h2><i class="fas fa-info-circle"></i> Mô tả khóa học</h2>
+                        <p>${course.description || 'Khóa học này chưa có mô tả.'}</p>
+                    </div>
+                    <div class="lessons-section">
+                        <h2><i class="fas fa-list-ul"></i> Danh sách bài học (${course.lesson_count || 0})</h2>
+                        <div id="lessons-list">
+                            <div class="loading"><div class="spinner"></div></div>
+                        </div>
+                    </div>
+                `;
+                
+                loadLessons(courseId);
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        Không thể tải thông tin khóa học. Vui lòng thử lại sau.
+                    </div>
+                `;
+            }
+        }
+
+        async function loadLessons(courseId) {
+            const container = document.getElementById('lessons-list');
+            
+            try {
+                const lessons = await getLessonsByCourse(courseId);
+                
+                if (lessons.length === 0) {
+                    container.innerHTML = '<p style="color: var(--gray-500);">Khóa học này chưa có bài học nào.</p>';
+                    return;
+                }
+                
+                container.innerHTML = lessons.map((lesson, index) => `
+                    <div class="lesson-item">
+                        <div class="lesson-number">${index + 1}</div>
+                        <div class="lesson-title">
+                            <strong>${lesson.title}</strong>
+                            ${lesson.video_url ? '<span style="color: #666; font-size: 0.85rem;"> - Có video</span>' : ''}
+                        </div>
+                        <div class="lesson-duration">
+                            <i class="fas fa-play-circle"></i> Học ngay
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = '<p style="color: var(--gray-500);">Không thể tải danh sách bài học.</p>';
+            }
+        }
+
+        async function doEnrollCourse(courseId) {
+            if (!auth.isLoggedIn()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            try {
+                await enrollCourse(courseId);
+                showAlert('Đăng ký khóa học thành công! Bạn có thể bắt đầu học ngay.', 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        updateAuthNav();
+        loadCourseDetail();
+    </script>
+</body>
+</html>
