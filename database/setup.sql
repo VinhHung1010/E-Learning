@@ -47,6 +47,16 @@ CREATE TABLE IF NOT EXISTS lessons (
   FOREIGN KEY (course_id) REFERENCES courses(id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS enrollments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT,
+  course_id INT,
+  enrolled_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  status ENUM('pending','active') DEFAULT 'pending',
+  FOREIGN KEY (user_id) REFERENCES users(id),
+  FOREIGN KEY (course_id) REFERENCES courses(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Insert sample categories
@@ -72,3 +82,7 @@ INSERT INTO lessons (course_id, title, content, video_url, position) VALUES
 (1, 'Bài 3: Toán tử', 'Các toán tử số học, so sánh và logic.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 3),
 (2, 'Bài 1: HTML cơ bản', 'Cấu trúc cơ bản của một trang web HTML.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 1),
 (2, 'Bài 2: CSS cơ bản', 'Styling cho trang web với CSS.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 2);
+
+-- Insert sample admin user (password: admin123)
+INSERT INTO users (name, email, password, role, is_active) VALUES 
+('Admin', 'admin@elearning.com', '$2a$10$XQxBtL7KNQ7rqGqZ8cqGyOpkY8qXqZ8cqGyOpkY8qXqZ8cqGyOp', 'admin', 1);
