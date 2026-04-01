@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông báo - E-Learning</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .notifications-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .notifications-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .notifications-header h1 {
+            font-size: 1.8rem;
+            color: var(--gray-900);
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .notifications-header h1 i {
+            color: var(--primary);
+        }
+
+        .notification-badge {
+            background: var(--primary);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+
+        .notification-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-text {
+            background: none;
+            border: none;
+            color: var(--gray-600);
+            cursor: pointer;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            border-radius: 6px;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .btn-text:hover {
+            background: var(--gray-100);
+            color: var(--primary);
+        }
+
+        .notification-list {
+            background: white;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .notification-item {
+            display: flex;
+            gap: 15px;
+            padding: 20px;
+            border-bottom: 1px solid var(--gray-200);
+            transition: all 0.2s;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .notification-item:last-child {
+            border-bottom: none;
+        }
+
+        .notification-item:hover {
+            background: var(--gray-50);
+        }
+
+        .notification-item.unread {
+            background: #f0f9ff;
+        }
+
+        .notification-item.unread::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: var(--primary);
+        }
+
+        .notification-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        .notification-icon.enrollment {
+            background: #dcfce7;
+            color: #16a34a;
+        }
+
+        .notification-icon.review {
+            background: #fef3c7;
+            color: #d97706;
+        }
+
+        .notification-icon.lesson {
+            background: #dbeafe;
+            color: #2563eb;
+        }
+
+        .notification-icon.course {
+            background: #e0e7ff;
+            color: #4f46e5;
+        }
+
+        .notification-icon.completion {
+            background: #d1fae5;
+            color: #059669;
+        }
+
+        .notification-icon.system {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+
+        .notification-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notification-title {
+            font-weight: 600;
+            color: var(--gray-900);
+            margin-bottom: 5px;
+        }
+
+        .notification-message {
+            color: var(--gray-600);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .notification-time {
+            color: var(--gray-400);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .notification-delete {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            width: 32px;
+            height: 32px;
+            border-radius: 6px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--gray-400);
+            opacity: 0;
+            transition: all 0.2s;
+        }
+
+        .notification-item:hover .notification-delete {
+            opacity: 1;
+        }
+
+        .notification-delete:hover {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 20px;
+        }
+
+        .empty-state-icon {
+            font-size: 4rem;
+            color: #e5e7eb;
+            margin-bottom: 20px;
+        }
+
+        .empty-state h2 {
+            color: var(--gray-800);
+            margin-bottom: 10px;
+        }
+
+        .empty-state p {
+            color: var(--gray-600);
+        }
+
+        .mark-read-dropdown {
+            position: relative;
+        }
+
+        .mark-read-dropdown .dropdown-content {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+            padding: 8px;
+            min-width: 180px;
+            z-index: 100;
+            display: none;
+        }
+
+        .mark-read-dropdown.open .dropdown-content {
+            display: block;
+        }
+
+        .mark-read-dropdown .dropdown-content button {
+            width: 100%;
+            text-align: left;
+            padding: 10px 15px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: var(--gray-700);
+            transition: all 0.2s;
+        }
+
+        .mark-read-dropdown .dropdown-content button:hover {
+            background: var(--gray-100);
+        }
+
+        .mark-read-dropdown .dropdown-content button.delete-all:hover {
+            background: #fee2e2;
+            color: #ef4444;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 15px 25px;
+            border-radius: 10px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            animation: slideIn 0.3s ease;
+        }
+
+        .toast.success { background: #10b981; }
+        .toast.error { background: #ef4444; }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .loading-more {
+            text-align: center;
+            padding: 20px;
+            color: var(--gray-500);
+        }
+
+        .loading-more i {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .notifications-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 15px;
+            }
+
+            .notification-item {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                <span>E-Learning</span>
+            </a>
+            <nav class="nav">
+                <ul class="nav-links">
+                    <li><a href="index.html">Trang chủ</a></li>
+                    <li><a href="courses.html">Khóa học</a></li>
+                    <li><a href="my-courses.html">Khóa học của tôi</a></li>
+                    <li><a href="notifications.html" class="active">Thông báo</a></li>
+                </ul>
+                <div class="nav-auth" id="nav-auth"></div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="notifications-container">
+            <div class="notifications-header">
+                <h1>
+                    <i class="fas fa-bell"></i>
+                    Thông báo
+                    <span class="notification-badge" id="unread-count">0</span>
+                </h1>
+                <div class="notification-actions">
+                    <div class="mark-read-dropdown" id="mark-dropdown">
+                        <button class="btn-text" onclick="toggleDropdown()">
+                            <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <div class="dropdown-content">
+                            <button onclick="markAllRead()">
+                                <i class="fas fa-check-double"></i>
+                                Đánh dấu tất cả đã đọc
+                            </button>
+                            <button onclick="deleteAllNotifications()" class="delete-all">
+                                <i class="fas fa-trash"></i>
+                                Xóa tất cả
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="notification-list" id="notification-list">
+                <div class="loading" style="text-align: center; padding: 60px;">
+                    <i class="fas fa-spinner fa-spin" style="font-size: 2rem; color: var(--primary);"></i>
+                    <p style="margin-top: 15px; color: var(--gray-600);">Đang tải thông báo...</p>
+                </div>
+            </div>
+
+            <div id="load-more-container"></div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                <p>&copy; 2024 E-Learning. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        let notifications = [];
+        let currentPage = 1;
+        const limit = 20;
+
+        // Auth check
+        if (!auth.isLoggedIn()) {
+            window.location.href = 'login.html?redirect=notifications.html';
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            updateAuthNav();
+            loadNotifications();
+            updateUnreadCount();
+        });
+
+        async function loadNotifications(refresh = false) {
+            if (refresh) {
+                currentPage = 1;
+                notifications = [];
+            }
+
+            const container = document.getElementById('notification-list');
+
+            try {
+                const data = await getNotifications({ limit, offset: (currentPage - 1) * limit });
+                
+                if (refresh) {
+                    notifications = data;
+                } else {
+                    notifications = [...notifications, ...data];
+                }
+
+                if (notifications.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-bell-slash"></i>
+                            </div>
+                            <h2>Không có thông báo</h2>
+                            <p>Bạn sẽ nhận được thông báo khi có cập nhật mới.</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                container.innerHTML = notifications.map(n => renderNotification(n)).join('');
+
+                // Update unread count
+                updateUnreadCount();
+
+            } catch (error) {
+                console.error('Error loading notifications:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <h2>Có lỗi xảy ra</h2>
+                        <p>Không thể tải thông báo. Vui lòng thử lại sau.</p>
+                        <button onclick="loadNotifications(true)" class="btn-text">
+                            <i class="fas fa-redo"></i> Thử lại
+                        </button>
+                    </div>
+                `;
+            }
+        }
+
+        function renderNotification(n) {
+            const iconClass = getIconClass(n.type);
+            const icon = getIcon(n.type);
+            
+            return `
+                <div class="notification-item ${n.is_read ? '' : 'unread'}" 
+                     id="notif-${n.id}"
+                     onclick="handleNotificationClick(${n.id}, '${n.link || ''}', ${n.is_read})">
+                    <div class="notification-icon ${iconClass}">
+                        <i class="fas fa-${icon}"></i>
+                    </div>
+                    <div class="notification-content">
+                        <div class="notification-title">${n.title}</div>
+                        <div class="notification-message">${n.message}</div>
+                        <div class="notification-time">
+                            <i class="fas fa-clock"></i>
+                            ${formatTime(n.created_at)}
+                        </div>
+                    </div>
+                    <button class="notification-delete" onclick="event.stopPropagation(); deleteNotif(${n.id})" title="Xóa">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+        }
+
+        function getIconClass(type) {
+            const classes = {
+                'enrollment': 'enrollment',
+                'review': 'review',
+                'lesson': 'lesson',
+                'course': 'course',
+                'completion': 'completion',
+                'system': 'system'
+            };
+            return classes[type] || 'system';
+        }
+
+        function getIcon(type) {
+            const icons = {
+                'enrollment': 'graduation-cap',
+                'review': 'star',
+                'lesson': 'play-circle',
+                'course': 'book-open',
+                'completion': 'trophy',
+                'system': 'cog'
+            };
+            return icons[type] || 'bell';
+        }
+
+        function formatTime(dateStr) {
+            const date = new Date(dateStr);
+            const now = new Date();
+            const diff = now - date;
+            
+            const minutes = Math.floor(diff / 60000);
+            const hours = Math.floor(diff / 3600000);
+            const days = Math.floor(diff / 86400000);
+
+            if (minutes < 1) return 'Vừa xong';
+            if (minutes < 60) return `${minutes} phút trước`;
+            if (hours < 24) return `${hours} giờ trước`;
+            if (days < 7) return `${days} ngày trước`;
+            
+            return date.toLocaleDateString('vi-VN');
+        }
+
+        async function handleNotificationClick(id, link, isRead) {
+            // Mark as read if unread
+            if (!isRead) {
+                await markNotificationAsRead(id);
+                const item = document.getElementById(`notif-${id}`);
+                if (item) {
+                    item.classList.remove('unread');
+                    updateUnreadCount();
+                }
+            }
+
+            // Navigate if link exists
+            if (link) {
+                window.location.href = link;
+            }
+        }
+
+        async function deleteNotif(id) {
+            if (!confirm('Xóa thông báo này?')) return;
+
+            try {
+                await deleteNotification(id);
+                const item = document.getElementById(`notif-${id}`);
+                if (item) {
+                    item.style.animation = 'fadeOut 0.3s';
+                    setTimeout(() => {
+                        item.remove();
+                        updateUnreadCount();
+                    }, 300);
+                }
+                showToast('Đã xóa thông báo', 'success');
+            } catch (error) {
+                showToast('Có lỗi xảy ra', 'error');
+            }
+        }
+
+        async function markAllRead() {
+            try {
+                await markAllNotificationsAsRead();
+                
+                document.querySelectorAll('.notification-item.unread').forEach(item => {
+                    item.classList.remove('unread');
+                });
+                
+                updateUnreadCount();
+                toggleDropdown();
+                showToast('Đã đánh dấu tất cả đã đọc', 'success');
+            } catch (error) {
+                showToast('Có lỗi xảy ra', 'error');
+            }
+        }
+
+        async function deleteAllNotifications() {
+            if (!confirm('Xóa tất cả thông báo?')) return;
+
+            try {
+                await deleteAllNotifications();
+                document.getElementById('notification-list').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i class="fas fa-bell-slash"></i>
+                        </div>
+                        <h2>Không có thông báo</h2>
+                        <p>Bạn sẽ nhận được thông báo khi có cập nhật mới.</p>
+                    </div>
+                `;
+                document.getElementById('unread-count').textContent = '0';
+                toggleDropdown();
+                showToast('Đã xóa tất cả thông báo', 'success');
+            } catch (error) {
+                showToast('Có lỗi xảy ra', 'error');
+            }
+        }
+
+        async function updateUnreadCount() {
+            try {
+                const result = await getUnreadNotificationCount();
+                document.getElementById('unread-count').textContent = result.count;
+            } catch (error) {
+                console.error('Error updating unread count:', error);
+            }
+        }
+
+        function toggleDropdown() {
+            document.getElementById('mark-dropdown').classList.toggle('open');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.mark-read-dropdown')) {
+                document.getElementById('mark-dropdown').classList.remove('open');
+            }
+        });
+
+        function showToast(message, type = 'success') {
+            document.querySelectorAll('.toast').forEach(t => t.remove());
+            
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i>
+                ${message}
+            `;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.animation = 'slideIn 0.3s ease reverse';
+                setTimeout(() => toast.remove(), 300);
+            }, 2500);
+        }
+
+        // Add animation style
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeOut {
+                from { opacity: 1; transform: translateX(0); }
+                to { opacity: 0; transform: translateX(-20px); }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

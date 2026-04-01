@@ -31,6 +31,10 @@ function updateAuthNav() {
             adminLink = '<a href="admin.html"><i class="fas fa-cog"></i> Quản trị</a>';
         }
         navAuth.innerHTML = `
+            <a href="notifications.html" class="nav-notification" id="nav-notification" title="Thông báo">
+                <i class="fas fa-bell"></i>
+                <span class="notification-dot" id="notification-dot" style="display: none;"></span>
+            </a>
             <div class="user-menu">
                 <div class="user-avatar">${user.name.charAt(0).toUpperCase()}</div>
                 <span class="user-name">${user.name}</span>
@@ -38,11 +42,15 @@ function updateAuthNav() {
                     <a href="profile.html"><i class="fas fa-user"></i> Hồ sơ</a>
                     <a href="my-courses.html"><i class="fas fa-book"></i> Khóa học của tôi</a>
                     <a href="wishlist.html"><i class="fas fa-heart"></i> Yêu thích</a>
+                    <a href="notifications.html"><i class="fas fa-bell"></i> Thông báo</a>
                     ${adminLink}
                     <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
                 </div>
             </div>
         `;
+        
+        // Update notification badge
+        updateNotificationBadge();
     } else {
         navAuth.innerHTML = `
             <a href="login.html" class="btn-login">Đăng nhập</a>
@@ -328,3 +336,71 @@ async function toggleWishlist(courseId) {
         method: 'POST'
     });
 }
+
+// ===== NOTIFICATION FUNCTIONS =====
+
+// Lấy danh sách thông báo
+async function getNotifications(options = {}) {
+    const query = new URLSearchParams(options).toString();
+    return await api(`/notifications${query ? '?' + query : ''}`);
+}
+
+// Lấy số thông báo chưa đọc
+async function getUnreadNotificationCount() {
+    return await api('/notifications/unread-count');
+}
+
+// Lấy thông báo theo ID
+async function getNotificationById(id) {
+    return await api(`/notifications/${id}`);
+}
+
+// Đánh dấu đã đọc
+async function markNotificationAsRead(id) {
+    return await api(`/notifications/${id}/read`, {
+        method: 'PUT'
+    });
+}
+
+// Đánh dấu tất cả đã đọc
+async function markAllNotificationsAsRead() {
+    return await api('/notifications/read-all', {
+        method: 'PUT'
+    });
+}
+
+// Xóa thông báo
+async function deleteNotification(id) {
+    return await api(`/notifications/${id}`, {
+        method: 'DELETE'
+    });
+}
+
+// Xóa tất cả thông báo
+async function deleteAllNotifications() {
+    return await api('/notifications', {
+        method: 'DELETE'
+    });
+}
+
+// Cập nhật badge thông báo trên icon
+async function updateNotificationBadge() {
+    if (!auth.isLoggedIn()) return;
+    
+    try {
+        const result = await getUnreadNotificationCount();
+        const dot = document.getElementById('notification-dot');
+        if (dot) {
+            dot.style.display = result.count > 0 ? 'block' : 'none';
+        }
+    } catch (error) {
+        console.error('Error updating notification badge:', error);
+    }
+}
+
+// Refresh notification badge periodically
+setInterval(() => {
+    if (auth.isLoggedIn()) {
+        updateNotificationBadge();
+    }
+}, 60000); // Check every minute
