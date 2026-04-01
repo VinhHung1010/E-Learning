@@ -36,6 +36,17 @@ CREATE TABLE IF NOT EXISTS courses (
   INDEX idx_average_rating (average_rating)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS lessons (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  course_id INT,
+  title VARCHAR(255),
+  content TEXT,
+  video_url VARCHAR(255),
+  position INT,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (course_id) REFERENCES courses(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Insert sample categories
@@ -53,3 +64,11 @@ INSERT INTO courses (title, description, category_id, price) VALUES
 ('HTML & CSS', 'Xây dựng giao diện web với HTML và CSS', 1, 0),
 ('Node.js Backend', 'Lập trình Backend với Node.js', 1, 299000),
 ('Marketing Online', 'Chiến lược marketing hiệu quả trên mạng xã hội', 2, 199000);
+
+-- Insert sample lessons
+INSERT INTO lessons (course_id, title, content, video_url, position) VALUES 
+(1, 'Bài 1: Giới thiệu JavaScript', 'JavaScript là ngôn ngữ lập trình phổ biến nhất thế giới.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 1),
+(1, 'Bài 2: Biến và Kiểu dữ liệu', 'Tìm hiểu về var, let, const và các kiểu dữ liệu.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 2),
+(1, 'Bài 3: Toán tử', 'Các toán tử số học, so sánh và logic.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 3),
+(2, 'Bài 1: HTML cơ bản', 'Cấu trúc cơ bản của một trang web HTML.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 1),
+(2, 'Bài 2: CSS cơ bản', 'Styling cho trang web với CSS.', 'https://www.youtube.com/watch?v=dQw4w9WgXcQ', 2);
