@@ -25,7 +25,7 @@ class User {
     }
 
     static async create(userData) {
-        const { name, email, password, role = 'student', is_active = 0 } = userData;
+        const { name, email, password, role = 'student', is_active = 1 } = userData;
         const [result] = await pool.query(
             'INSERT INTO users (name, email, password, role, is_active) VALUES (?, ?, ?, ?, ?)',
             [name, email, password, role, is_active]

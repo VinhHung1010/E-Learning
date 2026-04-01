@@ -52,9 +52,9 @@ class Enrollment {
     static async getByUserId(userId) {
         const [rows] = await pool.query(`
             SELECT e.*, c.title as course_title, c.thumbnail as course_thumbnail,
+            c.description as course_description, c.price as course_price,
             cat.name as category_name,
-            (SELECT COUNT(*) FROM lessons WHERE course_id = c.id) as total_lessons,
-            (SELECT COUNT(*) FROM lesson_progress WHERE user_id = e.user_id AND course_id = c.id AND is_completed = 1) as completed_lessons
+            (SELECT COUNT(*) FROM lessons WHERE course_id = c.id) as total_lessons
             FROM enrollments e
             LEFT JOIN courses c ON e.course_id = c.id
             LEFT JOIN categories cat ON c.category_id = cat.id
