@@ -22,6 +22,20 @@ CREATE TABLE IF NOT EXISTS categories (
   name VARCHAR(100) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+CREATE TABLE IF NOT EXISTS courses (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255),
+  description TEXT,
+  category_id INT,
+  price DECIMAL(10,2) DEFAULT 0,
+  thumbnail TEXT NULL,
+  average_rating DECIMAL(3,2) DEFAULT 0.00,
+  review_count INT DEFAULT 0,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (category_id) REFERENCES categories(id),
+  INDEX idx_average_rating (average_rating)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
 SET FOREIGN_KEY_CHECKS = 1;
 
 -- Insert sample categories
@@ -32,3 +46,10 @@ INSERT INTO categories (name) VALUES
 ('Kỹ năng mềm'),
 ('Học để giỏi'),
 ('Máy tính cơ bản');
+
+-- Insert sample courses
+INSERT INTO courses (title, description, category_id, price) VALUES 
+('JavaScript Cơ Bản', 'Khóa học JavaScript từ cơ bản đến nâng cao', 1, 0),
+('HTML & CSS', 'Xây dựng giao diện web với HTML và CSS', 1, 0),
+('Node.js Backend', 'Lập trình Backend với Node.js', 1, 299000),
+('Marketing Online', 'Chiến lược marketing hiệu quả trên mạng xã hội', 2, 199000);
