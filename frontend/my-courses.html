@@ -108,7 +108,10 @@
                 container.innerHTML = enrollments.map(enrollment => `
                     <div class="course-card">
                         <div class="course-thumb">
-                            <i class="fas fa-book"></i>
+                            ${enrollment.course_thumbnail ? 
+                                `<img src="${enrollment.course_thumbnail}" alt="${enrollment.course_title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
+                                ''}
+                            <i class="fas fa-book" style="${enrollment.course_thumbnail ? 'display:none' : ''}"></i>
                             ${enrollment.status === 'active' ? '<span class="course-badge" style="background: var(--secondary);">Đang học</span>' : ''}
                         </div>
                         <div class="course-content">

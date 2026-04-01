@@ -1,4 +1,3 @@
-const BASE_URL = 'E-Learning';
 const API_URL = 'http://localhost:3000/api';
 
 // Lưu token và user info
@@ -27,20 +26,25 @@ function updateAuthNav() {
     
     if (auth.isLoggedIn()) {
         const user = auth.getUser();
+        let adminLink = '';
+        if (user.role === 'admin') {
+            adminLink = '<a href="admin.html"><i class="fas fa-cog"></i> Quản trị</a>';
+        }
         navAuth.innerHTML = `
             <div class="user-menu">
                 <div class="user-avatar">${user.name.charAt(0).toUpperCase()}</div>
                 <span class="user-name">${user.name}</span>
                 <div class="dropdown-menu">
-                    <a href="${BASE_URL}/frontend/my-courses.html"><i class="fas fa-book"></i> Khóa học của tôi</a>
+                    ${adminLink}
+                    <a href="my-courses.html"><i class="fas fa-book"></i> Khóa học của tôi</a>
                     <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
                 </div>
             </div>
         `;
     } else {
         navAuth.innerHTML = `
-            <a href="${BASE_URL}/frontend/login.html" class="btn-login">Đăng nhập</a>
-            <a href="${BASE_URL}/frontend/register.html" class="btn-register">Đăng ký</a>
+            <a href="login.html" class="btn-login">Đăng nhập</a>
+            <a href="register.html" class="btn-register">Đăng ký</a>
         `;
     }
 }
@@ -48,7 +52,7 @@ function updateAuthNav() {
 // Đăng xuất
 function logout() {
     auth.clearAuth();
-    window.location.href = `${BASE_URL}/frontend/index.html`;
+    window.location.href = 'index.html';
 }
 
 // Gọi API với fetch
@@ -139,6 +143,19 @@ async function enrollCourse(courseId) {
     });
 }
 
+// Lấy đánh giá theo khóa học
+async function getReviewsByCourse(courseId) {
+    return await api(`/reviews/course/${courseId}`);
+}
+
+// Tạo đánh giá
+async function createReview(courseId, rating, comment) {
+    return await api('/reviews', {
+        method: 'POST',
+        body: JSON.stringify({ course_id: courseId, rating, comment })
+    });
+}
+
 // Format tiền VND
 function formatPrice(price) {
     if (price == 0) return 'Miễn phí';
@@ -160,7 +177,7 @@ function showAlert(message, type = 'success') {
 // Kiểm tra đăng nhập, nếu chưa thì chuyển về trang login
 function requireAuth() {
     if (!auth.isLoggedIn()) {
-        window.location.href = `${BASE_URL}/frontend/login.html`;
+        window.location.href = 'login.html';
         return false;
     }
     return true;
@@ -169,13 +186,27 @@ function requireAuth() {
 // Kiểm tra đã đăng nhập thì chuyển về trang chủ
 function redirectIfLoggedIn() {
     if (auth.isLoggedIn()) {
-        window.location.href = `${BASE_URL}/frontend/index.html`;
+        window.location.href = 'index.html';
         return true;
     }
     return false;
 }
 
+// Kiểm tra có phải admin không, nếu không thì chuyển về trang chủ
+function requireAdmin() {
+    if (!auth.isLoggedIn()) {
+        window.location.href = 'login.html';
+        return false;
+    }
+    const user = auth.getUser();
+    if (user.role !== 'admin') {
+        window.location.href = 'index.html';
+        return false;
+    }
+    return true;
+}
+
 // Tạo đường dẫn với BASE_URL
 function url(path) {
-    return `${BASE_URL}/frontend/${path}`;
+    return path;
 }

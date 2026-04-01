@@ -100,7 +100,10 @@
                 container.innerHTML = `
                     <div class="course-detail-header">
                         <div class="course-detail-thumb">
-                            <i class="fas fa-book"></i>
+                            ${course.thumbnail ? 
+                                `<img src="${course.thumbnail}" alt="${course.title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
+                                ''}
+                            <i class="fas fa-book" style="${course.thumbnail ? 'display:none' : ''}"></i>
                         </div>
                         <div class="course-detail-info">
                             <h1>${course.title}</h1>

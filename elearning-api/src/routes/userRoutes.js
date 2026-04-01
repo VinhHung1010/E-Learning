@@ -91,8 +91,22 @@ router.get('/profile', auth, async (req, res) => {
 router.get('/', auth, isAdmin, async (req, res) => {
     try {
         const users = await User.getAll();
-        const total = await User.count();
-        res.json({ users, total });
+        res.json(users);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.put('/:id/status', auth, isAdmin, async (req, res) => {
+    try {
+        const { is_active } = req.body;
+        const updated = await User.update(req.params.id, { is_active });
+        
+        if (!updated) {
+            return res.status(404).json({ error: 'Không tìm thấy người dùng' });
+        }
+        
+        res.json({ message: 'Cập nhật trạng thái thành công' });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản trị - E-Learning</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/admin.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="admin-wrapper">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <div class="admin-logo">
+                <i class="fas fa-graduation-cap"></i>
+                <span>E-Learning</span>
+            </div>
+            <nav class="admin-nav">
+                <a href="#" class="nav-item active" data-section="dashboard">
+                    <i class="fas fa-home"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" data-section="users">
+                    <i class="fas fa-users"></i>
+                    <span>Người dùng</span>
+                </a>
+                <a href="#" class="nav-item" data-section="courses">
+                    <i class="fas fa-book"></i>
+                    <span>Khóa học</span>
+                </a>
+                <a href="#" class="nav-item" data-section="categories">
+                    <i class="fas fa-folder"></i>
+                    <span>Danh mục</span>
+                </a>
+                <a href="#" class="nav-item" data-section="enrollments">
+                    <i class="fas fa-user-graduate"></i>
+                    <span>Đăng ký</span>
+                </a>
+                <a href="#" class="nav-item" data-section="reviews">
+                    <i class="fas fa-star"></i>
+                    <span>Đánh giá</span>
+                </a>
+            </nav>
+            <div class="admin-sidebar-footer">
+                <a href="index.html" class="nav-item">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Quay lại trang chủ</span>
+                </a>
+                <a href="#" class="nav-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Đăng xuất</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Header -->
+            <header class="admin-header">
+                <div class="admin-header-left">
+                    <button class="sidebar-toggle" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 id="page-title">Dashboard</h1>
+                </div>
+                <div class="admin-header-right">
+                    <div class="admin-user">
+                        <div class="user-avatar">A</div>
+                        <span id="admin-name">Admin</span>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="admin-content">
+                <!-- Dashboard Section -->
+                <section id="dashboard-section" class="admin-section active">
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #e3f2fd; color: #1976d2;">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="stat-users">0</h3>
+                                <p>Người dùng</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #e8f5e9; color: #388e3c;">
+                                <i class="fas fa-book"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="stat-courses">0</h3>
+                                <p>Khóa học</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #fff3e0; color: #f57c00;">
+                                <i class="fas fa-user-graduate"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="stat-enrollments">0</h3>
+                                <p>Đăng ký</p>
+                            </div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon" style="background: #fce4ec; color: #c2185b;">
+                                <i class="fas fa-star"></i>
+                            </div>
+                            <div class="stat-info">
+                                <h3 id="stat-reviews">0</h3>
+                                <p>Đánh giá</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card">
+                            <h3><i class="fas fa-clock"></i> Đăng ký gần đây</h3>
+                            <div id="recent-enrollments" class="recent-list">
+                                <p class="empty-message">Không có dữ liệu</p>
+                            </div>
+                        </div>
+                        <div class="dashboard-card">
+                            <h3><i class="fas fa-chart-bar"></i> Khóa học phổ biến</h3>
+                            <div id="popular-courses" class="recent-list">
+                                <p class="empty-message">Không có dữ liệu</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Users Section -->
+                <section id="users-section" class="admin-section">
+                    <div class="section-header">
+                        <h2>Quản lý người dùng</h2>
+                        <div class="section-actions">
+                            <input type="text" id="user-search" placeholder="Tìm kiếm..." class="search-input">
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tên</th>
+                                    <th>Email</th>
+                                    <th>Vai trò</th>
+                                    <th>Trạng thái</th>
+                                    <th>Ngày tạo</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <tr><td colspan="7" class="loading">Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Courses Section -->
+                <section id="courses-section" class="admin-section">
+                    <div class="section-header">
+                        <h2>Quản lý khóa học</h2>
+                        <div class="section-actions">
+                            <button class="btn btn-primary" onclick="showCourseModal()">
+                                <i class="fas fa-plus"></i> Thêm khóa học
+                            </button>
+                            <input type="text" id="course-search" placeholder="Tìm kiếm..." class="search-input">
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tiêu đề</th>
+                                    <th>Danh mục</th>
+                                    <th>Giá</th>
+                                    <th>Bài học</th>
+                                    <th>Đánh giá</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="courses-table-body">
+                                <tr><td colspan="7" class="loading">Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Categories Section -->
+                <section id="categories-section" class="admin-section">
+                    <div class="section-header">
+                        <h2>Quản lý danh mục</h2>
+                        <div class="section-actions">
+                            <button class="btn btn-primary" onclick="showCategoryModal()">
+                                <i class="fas fa-plus"></i> Thêm danh mục
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Tên danh mục</th>
+                                    <th>Số khóa học</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="categories-table-body">
+                                <tr><td colspan="4" class="loading">Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Enrollments Section -->
+                <section id="enrollments-section" class="admin-section">
+                    <div class="section-header">
+                        <h2>Quản lý đăng ký</h2>
+                        <div class="section-actions">
+                            <input type="text" id="enrollment-search" placeholder="Tìm kiếm..." class="search-input">
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Học viên</th>
+                                    <th>Khóa học</th>
+                                    <th>Ngày đăng ký</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody id="enrollments-table-body">
+                                <tr><td colspan="5" class="loading">Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+
+                <!-- Reviews Section -->
+                <section id="reviews-section" class="admin-section">
+                    <div class="section-header">
+                        <h2>Quản lý đánh giá</h2>
+                        <div class="section-actions">
+                            <select id="review-filter" class="filter-select" onchange="loadReviews()">
+                                <option value="">Tất cả</option>
+                                <option value="pending">Chờ duyệt</option>
+                                <option value="approved">Đã duyệt</option>
+                                <option value="rejected">Từ chối</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Học viên</th>
+                                    <th>Khóa học</th>
+                                    <th>Rating</th>
+                                    <th>Bình luận</th>
+                                    <th>Trạng thái</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reviews-table-body">
+                                <tr><td colspan="7" class="loading">Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- Course Modal -->
+    <div id="course-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="course-modal-title">Thêm khóa học</h3>
+                <button class="modal-close" onclick="closeCourseModal()">&times;</button>
+            </div>
+            <form id="course-form" class="modal-form">
+                <input type="hidden" id="course-id">
+                <div class="form-group">
+                    <label for="course-title">Tiêu đề</label>
+                    <input type="text" id="course-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="course-description">Mô tả</label>
+                    <textarea id="course-description" rows="4"></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="course-category">Danh mục</label>
+                        <select id="course-category" required></select>
+                    </div>
+                    <div class="form-group">
+                        <label for="course-price">Giá (VNĐ)</label>
+                        <input type="number" id="course-price" min="0" value="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="course-thumbnail">URL hình ảnh</label>
+                    <input type="url" id="course-thumbnail" placeholder="https://...">
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeCourseModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Category Modal -->
+    <div id="category-modal" class="modal">
+        <div class="modal-content modal-small">
+            <div class="modal-header">
+                <h3 id="category-modal-title">Thêm danh mục</h3>
+                <button class="modal-close" onclick="closeCategoryModal()">&times;</button>
+            </div>
+            <form id="category-form" class="modal-form">
+                <input type="hidden" id="category-id">
+                <div class="form-group">
+                    <label for="category-name">Tên danh mục</label>
+                    <input type="text" id="category-name" required>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="toast"></div>
+
+    <script src="js/api.js"></script>
+    <script src="js/admin.js"></script>
+</body>
+</html>

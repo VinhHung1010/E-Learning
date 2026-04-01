@@ -437,6 +437,15 @@ main {
     overflow: hidden;
 }
 
+.course-thumb img {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
 .course-thumb::after {
     content: '';
     position: absolute;
@@ -709,6 +718,13 @@ main {
     justify-content: center;
     font-size: 8rem;
     color: white;
+    overflow: hidden;
+}
+
+.course-detail-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
 }
 
 .course-detail-info {
