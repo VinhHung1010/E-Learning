@@ -6,6 +6,38 @@
     <title>Chi tiết khóa học - E-Learning</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .course-actions {
+            margin-bottom: 15px;
+        }
+        .btn-wishlist {
+            width: 100%;
+            padding: 12px 20px;
+            background: #fff;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            color: #6b7280;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .btn-wishlist:hover {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+        .btn-wishlist.active {
+            background: #fef2f2;
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+        .btn-wishlist i {
+            font-size: 1.1rem;
+        }
+    </style>
 </head>
 <body>
     <header class="header">
@@ -126,6 +158,12 @@
                             <div class="course-price-large ${course.price == 0 ? 'free' : ''}">
                                 ${formatPrice(course.price)}
                             </div>
+                            <div class="course-actions">
+                                <button id="wishlist-btn" class="btn btn-wishlist" onclick="toggleWishlistHandler(${course.id})">
+                                    <i class="far fa-heart"></i>
+                                    <span>Yêu thích</span>
+                                </button>
+                            </div>
                             ${isEnrolled ? 
                                 `<a href="lesson-player.html?course=${course.id}" class="btn btn-primary btn-lg btn-block">
                                     <i class="fas fa-play"></i> Tiếp tục học
@@ -153,6 +191,7 @@
                 `;
                 
                 loadLessons(courseId);
+                checkWishlistStatus(courseId);
             } catch (error) {
                 container.innerHTML = `
                     <div class="alert alert-error">
@@ -200,6 +239,46 @@
             try {
                 await enrollCourse(courseId);
                 showAlert('Đăng ký khóa học thành công! Bạn có thể bắt đầu học ngay.', 'success');
+            } catch (error) {
+                showAlert(error.message, 'error');
+            }
+        }
+
+        async function checkWishlistStatus(courseId) {
+            if (!auth.isLoggedIn()) return;
+            
+            try {
+                const result = await checkWishlist(courseId);
+                const btn = document.getElementById('wishlist-btn');
+                if (result.isInWishlist) {
+                    btn.classList.add('active');
+                    btn.innerHTML = '<i class="fas fa-heart"></i><span>Đã yêu thích</span>';
+                }
+            } catch (error) {
+                console.error('Error checking wishlist:', error);
+            }
+        }
+
+        async function toggleWishlistHandler(courseId) {
+            if (!auth.isLoggedIn()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            
+            const btn = document.getElementById('wishlist-btn');
+            
+            try {
+                const result = await toggleWishlist(courseId);
+                
+                if (result.isInWishlist) {
+                    btn.classList.add('active');
+                    btn.innerHTML = '<i class="fas fa-heart"></i><span>Đã yêu thích</span>';
+                    showAlert('Đã thêm vào danh sách yêu thích!', 'success');
+                } else {
+                    btn.classList.remove('active');
+                    btn.innerHTML = '<i class="far fa-heart"></i><span>Yêu thích</span>';
+                    showAlert('Đã xóa khỏi danh sách yêu thích!', 'success');
+                }
             } catch (error) {
                 showAlert(error.message, 'error');
             }

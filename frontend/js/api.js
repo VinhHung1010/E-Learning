@@ -37,6 +37,7 @@ function updateAuthNav() {
                 <div class="dropdown-menu">
                     <a href="profile.html"><i class="fas fa-user"></i> Hồ sơ</a>
                     <a href="my-courses.html"><i class="fas fa-book"></i> Khóa học của tôi</a>
+                    <a href="wishlist.html"><i class="fas fa-heart"></i> Yêu thích</a>
                     ${adminLink}
                     <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
                 </div>
@@ -292,4 +293,38 @@ async function changePassword(current_password, new_password) {
 // Cập nhật user trong localStorage
 function updateLocalUser(user) {
     localStorage.setItem('user', JSON.stringify(user));
+}
+
+// ===== WISHLIST FUNCTIONS =====
+
+// Lấy danh sách yêu thích
+async function getWishlists() {
+    return await api('/wishlists');
+}
+
+// Kiểm tra khóa học có trong wishlist không
+async function checkWishlist(courseId) {
+    return await api(`/wishlists/check/${courseId}`);
+}
+
+// Thêm vào wishlist
+async function addToWishlist(courseId) {
+    return await api('/wishlists', {
+        method: 'POST',
+        body: JSON.stringify({ course_id: courseId })
+    });
+}
+
+// Xóa khỏi wishlist
+async function removeFromWishlist(courseId) {
+    return await api(`/wishlists/${courseId}`, {
+        method: 'DELETE'
+    });
+}
+
+// Toggle wishlist (thêm nếu chưa có, xóa nếu đã có)
+async function toggleWishlist(courseId) {
+    return await api(`/wishlists/toggle/${courseId}`, {
+        method: 'POST'
+    });
 }
