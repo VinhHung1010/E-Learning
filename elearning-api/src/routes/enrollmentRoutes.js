@@ -84,14 +84,17 @@ router.post('/', auth, async (req, res) => {
         const enrollment = await Enrollment.create({
             user_id: req.user.id,
             course_id,
-            status: course.price > 0 ? 'pending' : 'active'
+            status: course.price > 0 && req.user.role !== 'admin' ? 'pending' : 'active'
         });
 
+        const isAdminUser = req.user.role === 'admin';
         const title =
             enrollment.status === 'active' ? 'Đăng ký thành công' : 'Đăng ký đang chờ xử lý';
         const body =
             enrollment.status === 'active'
-                ? `Bạn đã đăng ký khóa "${course.title}". Vào mục Khóa học của tôi để bắt đầu học.`
+                ? isAdminUser
+                    ? `Bạn (Admin) đã đăng ký khóa "${course.title}". Vào mục Khóa học của tôi để xem nội dung.`
+                    : `Bạn đã đăng ký khóa "${course.title}". Vào mục Khóa học của tôi để bắt đầu học.`
                 : `Đăng ký khóa "${course.title}" đang chờ thanh toán hoặc kích hoạt từ quản trị viên.`;
         await Notification.create({
             user_id: req.user.id,
