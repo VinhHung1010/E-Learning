@@ -96,17 +96,28 @@ async function loadDashboard() {
 
         document.getElementById('stat-users').textContent = users.length || 0;
         document.getElementById('stat-courses').textContent = courses.length || 0;
-        document.getElementById('stat-enrollments').textContent = enrollments.length || 0;
-        document.getElementById('stat-reviews').textContent = reviews.length || 0;
 
-        // Recent enrollments
+        const pendingEnrollments = enrollments.filter(e => e.status === 'pending').length;
+        const activeEnrollments = enrollments.filter(e => e.status === 'active').length;
+        document.getElementById('stat-enrollments').innerHTML = `${enrollments.length || 0} <small style="font-size:0.7em;opacity:0.8;">(${pendingEnrollments > 0 ? `<span style="color:var(--accent)">${pendingEnrollments} chờ</span>` : '0 chờ'})</small>`;
+
+        const pendingReviews = reviews.filter(r => r.status === 'pending').length;
+        document.getElementById('stat-reviews').innerHTML = `${reviews.length || 0} <small style="font-size:0.7em;opacity:0.8;">(${pendingReviews > 0 ? `<span style="color:var(--accent)">${pendingReviews} chờ</span>` : '0 chờ'})</small>`;
+
+        // Recent enrollments (prioritize pending)
         const recentEnrollments = document.getElementById('recent-enrollments');
-        if (enrollments.length > 0) {
-            recentEnrollments.innerHTML = enrollments.slice(0, 5).map(e => `
-                <div class="recent-item">
+        const sortedEnrollments = [...enrollments].sort((a, b) => {
+            if (a.status === 'pending' && b.status !== 'pending') return -1;
+            if (a.status !== 'pending' && b.status === 'pending') return 1;
+            return new Date(b.enrolled_at) - new Date(a.enrolled_at);
+        });
+
+        if (sortedEnrollments.length > 0) {
+            recentEnrollments.innerHTML = sortedEnrollments.slice(0, 5).map(e => `
+                <div class="recent-item" style="${e.status === 'pending' ? 'border-left: 3px solid var(--accent); background: #fffbeb;' : ''}">
                     <div class="recent-item-info">
                         <h4>${e.user_name || 'User'}</h4>
-                        <p>${e.course_title || 'Course'}</p>
+                        <p>${e.course_title || 'Course'} ${e.status === 'pending' ? '<span style="color:var(--accent);font-weight:600;">(Chờ duyệt)</span>' : ''}</p>
                     </div>
                     <span class="recent-item-date">${formatDate(e.enrolled_at)}</span>
                 </div>
@@ -402,35 +413,89 @@ async function deleteCategory(categoryId) {
 // Enrollments Management
 async function loadEnrollments(search = '') {
     const tbody = document.getElementById('enrollments-table-body');
-    tbody.innerHTML = '<tr><td colspan="5" class="loading">Đang tải...</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="loading">Đang tải...</td></tr>';
+
+    const statusFilter = document.getElementById('enrollment-status-filter').value;
 
     try {
         let enrollments = await api('/enrollments');
-        
+
+        // Filter by status
+        if (statusFilter) {
+            enrollments = enrollments.filter(e => e.status === statusFilter);
+        }
+
         if (search) {
-            enrollments = enrollments.filter(e => 
+            enrollments = enrollments.filter(e =>
                 (e.user_name || '').toLowerCase().includes(search.toLowerCase()) ||
                 (e.course_title || '').toLowerCase().includes(search.toLowerCase())
             );
         }
 
         if (enrollments.length === 0) {
-            tbody.innerHTML = '<tr><td colspan="5" class="loading">Không có đăng ký</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="7" class="loading">Không có đăng ký</td></tr>';
             return;
         }
 
         tbody.innerHTML = enrollments.map(e => `
             <tr>
                 <td>${e.id}</td>
-                <td>${e.user_name || 'User'}</td>
+                <td>
+                    <div class="user-cell">
+                        <strong>${e.user_name || 'User'}</strong>
+                        <small>${e.user_email || ''}</small>
+                    </div>
+                </td>
                 <td>${e.course_title || 'Course'}</td>
+                <td><span class="badge badge-${e.course_price == 0 ? 'free' : 'paid'}">${formatPrice(e.course_price)}</span></td>
                 <td>${formatDate(e.enrolled_at)}</td>
-                <td><span class="badge badge-${e.status === 'active' ? 'active' : 'pending'}">${e.status === 'active' ? 'Hoạt động' : 'Chờ'}</span></td>
+                <td><span class="badge badge-${e.status === 'active' ? 'active' : 'pending'}">${e.status === 'active' ? 'Hoạt động' : 'Chờ duyệt'}</span></td>
+                <td>
+                    <div class="action-buttons">
+                        ${e.status === 'pending' ? `
+                            <button class="btn btn-sm btn-success" onclick="activateEnrollment(${e.id}, '${e.course_title || 'khóa học'}')" title="Kích hoạt">
+                                <i class="fas fa-unlock"></i>
+                            </button>
+                        ` : `
+                            <span style="color: var(--secondary); font-size: 0.85rem;"><i class="fas fa-check-circle"></i> Đã mở</span>
+                        `}
+                        <button class="btn btn-sm btn-danger" onclick="deleteEnrollment(${e.id})" title="Xóa">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </td>
             </tr>
         `).join('');
     } catch (error) {
         console.error('Load enrollments error:', error);
-        tbody.innerHTML = '<tr><td colspan="5" class="loading">Lỗi khi tải dữ liệu</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="loading">Lỗi khi tải dữ liệu</td></tr>';
+    }
+}
+
+async function activateEnrollment(enrollmentId, courseTitle) {
+    if (!confirm(`Bạn có chắc muốn kích hoạt đăng ký khóa "${courseTitle}"?\n\nHọc viên sẽ có thể bắt đầu học ngay.`)) return;
+
+    try {
+        await api(`/enrollments/${enrollmentId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ status: 'active' })
+        });
+        showToast('Đã kích hoạt đăng ký thành công! Học viên có thể bắt đầu học.', 'success');
+        loadEnrollments();
+    } catch (error) {
+        showToast('Có lỗi xảy ra: ' + (error.message || ''), 'error');
+    }
+}
+
+async function deleteEnrollment(enrollmentId) {
+    if (!confirm('Bạn có chắc muốn xóa đăng ký này?')) return;
+
+    try {
+        await api(`/enrollments/${enrollmentId}`, { method: 'DELETE' });
+        showToast('Đã xóa đăng ký', 'success');
+        loadEnrollments();
+    } catch (error) {
+        showToast('Có lỗi xảy ra', 'error');
     }
 }
 

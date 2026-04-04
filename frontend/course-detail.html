@@ -274,11 +274,16 @@
                 window.location.href = 'login.html';
                 return;
             }
-            
+
             try {
-                await enrollCourse(courseId);
-                showAlert('Đăng ký khóa học thành công! Bạn có thể bắt đầu học ngay.', 'success');
+                const result = await enrollCourse(courseId);
+                if (result.enrollment && result.enrollment.status === 'pending') {
+                    showAlert('Yêu cầu đăng ký đã được gửi! Vui lòng chờ quản trị viên kích hoạt để bắt đầu học.', 'success');
+                } else {
+                    showAlert('Đăng ký khóa học thành công! Bạn có thể bắt đầu học ngay.', 'success');
+                }
                 refreshNavNotifBadge();
+                loadCourseDetail();
             } catch (error) {
                 showAlert(error.message, 'error');
             }

@@ -226,6 +226,11 @@
                     <div class="section-header">
                         <h2>Quản lý đăng ký</h2>
                         <div class="section-actions">
+                            <select id="enrollment-status-filter" class="filter-select" onchange="loadEnrollments()">
+                                <option value="">Tất cả</option>
+                                <option value="pending">Chờ duyệt</option>
+                                <option value="active">Hoạt động</option>
+                            </select>
                             <input type="text" id="enrollment-search" placeholder="Tìm kiếm..." class="search-input">
                         </div>
                     </div>
@@ -236,12 +241,14 @@
                                     <th>ID</th>
                                     <th>Học viên</th>
                                     <th>Khóa học</th>
+                                    <th>Giá</th>
                                     <th>Ngày đăng ký</th>
                                     <th>Trạng thái</th>
+                                    <th>Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody id="enrollments-table-body">
-                                <tr><td colspan="5" class="loading">Đang tải...</td></tr>
+                                <tr><td colspan="7" class="loading">Đang tải...</td></tr>
                             </tbody>
                         </table>
                     </div>
