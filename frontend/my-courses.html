@@ -106,13 +106,19 @@
                 }
                 
                 container.innerHTML = enrollments.map(enrollment => `
-                    <div class="course-card">
+                    <div class="course-card" style="position:relative;">
                         <div class="course-thumb">
-                            ${enrollment.course_thumbnail ? 
-                                `<img src="${enrollment.course_thumbnail}" alt="${enrollment.course_title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
+                            ${enrollment.course_thumbnail ?
+                                `<img src="${enrollment.course_thumbnail}" alt="${enrollment.course_title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` :
                                 ''}
                             <i class="fas fa-book" style="${enrollment.course_thumbnail ? 'display:none' : ''}"></i>
                             ${enrollment.status === 'active' ? '<span class="course-badge" style="background: var(--secondary);">Đang học</span>' : ''}
+                            ${enrollment.status === 'active' ? `<div class="course-progress-overlay">
+                                <div class="course-progress-bar">
+                                    <div class="course-progress-fill" id="progress-fill-${enrollment.course_id}" style="width:0%"></div>
+                                </div>
+                                <div class="course-progress-text" id="progress-text-${enrollment.course_id}">0% hoàn thành</div>
+                            </div>` : ''}
                         </div>
                         <div class="course-content">
                             <span class="course-category" style="background: ${enrollment.status === 'active' ? '#d1fae5' : '#fef3c7'}; color: ${enrollment.status === 'active' ? '#065f46' : '#92400e'};">
@@ -132,7 +138,12 @@
                         </div>
                     </div>
                 `).join('');
-            } catch (error) {
+
+                if (auth.isLoggedIn()) {
+                    enrollments.filter(e => e.status === 'active').forEach(enrollment => {
+                        loadCourseProgressOnCard(enrollment.course_id);
+                    });
+                }
                 container.innerHTML = `
                     <div class="alert alert-error" style="grid-column: 1/-1;">
                         <i class="fas fa-exclamation-circle"></i>
@@ -140,6 +151,21 @@
                     </div>
                 `;
             }
+        }
+
+        async function loadCourseProgressOnCard(courseId) {
+            try {
+                const stats = await getProgressStats(courseId);
+                if (stats && stats.total_lessons > 0) {
+                    const fill = document.getElementById(`progress-fill-${courseId}`);
+                    const text = document.getElementById(`progress-text-${courseId}`);
+                    if (fill && text) {
+                        const pct = stats.completion_percent || 0;
+                        fill.style.width = pct + '%';
+                        text.textContent = pct + '% hoàn thành';
+                    }
+                }
+            } catch (e) {}
         }
 
         updateAuthNav();

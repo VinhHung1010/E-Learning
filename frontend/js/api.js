@@ -312,6 +312,41 @@ function showAlert(message, type = 'success') {
     setTimeout(() => alert.remove(), 4000);
 }
 
+// Tiến độ học tập
+async function getProgressByLesson(lessonId) {
+    return await api(`/progress/lesson/${lessonId}`);
+}
+
+async function getProgressByCourse(courseId) {
+    return await api(`/progress/course/${courseId}`);
+}
+
+async function getProgressStats(courseId) {
+    return await api(`/progress/course/${courseId}/stats`);
+}
+
+async function updateProgress(lessonId, data) {
+    return await api(`/progress/lesson/${lessonId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ ...data, course_id: data.course_id })
+    });
+}
+
+async function markLessonComplete(lessonId, courseId) {
+    return await api(`/progress/lesson/${lessonId}/complete`, {
+        method: 'POST',
+        body: JSON.stringify({ course_id: courseId })
+    });
+}
+
+async function getUserProgressStats() {
+    return await api('/progress/stats');
+}
+
+async function getRecentActivity(limit = 10) {
+    return await api(`/progress/recent?limit=${limit}`);
+}
+
 // Kiểm tra đăng nhập, nếu chưa thì chuyển về trang login
 function requireAuth() {
     if (!auth.isLoggedIn()) {

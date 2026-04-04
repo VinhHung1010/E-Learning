@@ -106,8 +106,8 @@
                 container.innerHTML = `
                     <div class="course-detail-header">
                         <div class="course-detail-thumb">
-                            ${course.thumbnail ? 
-                                `<img src="${course.thumbnail}" alt="${course.title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
+                            ${course.thumbnail ?
+                                `<img src="${course.thumbnail}" alt="${course.title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` :
                                 ''}
                             <i class="fas fa-book" style="${course.thumbnail ? 'display:none' : ''}"></i>
                         </div>
@@ -126,7 +126,13 @@
                             <div class="course-price-large ${course.price == 0 ? 'free' : ''}">
                                 ${formatPrice(course.price)}
                             </div>
-                            ${auth.isLoggedIn() ? 
+                            <div id="course-progress-bar" class="progress-bar-container" style="display:none;">
+                                <div class="progress-bar-wrapper">
+                                    <div class="progress-bar-fill" id="course-progress-fill" style="width:0%"></div>
+                                </div>
+                                <span class="progress-percent" id="course-progress-percent">0%</span>
+                            </div>
+                            ${auth.isLoggedIn() ?
                                 `<div class="course-detail-actions">
                                     <button onclick="doEnrollCourse(${course.id})" class="btn btn-primary btn-lg course-detail-enroll">
                                         <i class="fas fa-graduation-cap"></i> Đăng ký khóa học
@@ -152,8 +158,11 @@
                         </div>
                     </div>
                 `;
-                
+
                 loadLessons(courseId);
+                if (auth.isLoggedIn()) {
+                    loadCourseProgress(courseId);
+                }
             } catch (error) {
                 container.innerHTML = `
                     <div class="alert alert-error">
@@ -166,29 +175,97 @@
 
         async function loadLessons(courseId) {
             const container = document.getElementById('lessons-list');
-            
+
             try {
                 const lessons = await getLessonsByCourse(courseId);
-                
+
                 if (lessons.length === 0) {
                     container.innerHTML = '<p style="color: var(--gray-500);">Khóa học này chưa có bài học nào.</p>';
                     return;
                 }
-                
-                container.innerHTML = lessons.map((lesson, index) => `
-                    <div class="lesson-item">
-                        <div class="lesson-number">${index + 1}</div>
-                        <div class="lesson-title">
-                            <strong>${lesson.title}</strong>
-                            ${lesson.video_url ? '<span style="color: #666; font-size: 0.85rem;"> - Có video</span>' : ''}
+
+                let lessonProgress = {};
+                if (auth.isLoggedIn()) {
+                    try {
+                        const data = await getProgressByCourse(courseId);
+                        if (data && data.progress) {
+                            data.progress.forEach(p => {
+                                lessonProgress[p.lesson_id] = p;
+                            });
+                        }
+                    } catch (e) {}
+                }
+
+                container.innerHTML = lessons.map((lesson, index) => {
+                    const progress = lessonProgress[lesson.id];
+                    const isCompleted = progress && progress.is_completed == 1;
+                    return `
+                        <div class="lesson-item ${isCompleted ? 'completed' : ''}">
+                            <div class="lesson-number">${index + 1}</div>
+                            <div class="lesson-title">
+                                ${isCompleted ? '<i class="fas fa-check-circle lesson-check"></i>' : ''}
+                                <strong>${lesson.title}</strong>
+                                ${lesson.video_url ? '<span style="color: #666; font-size: 0.85rem;"> - Có video</span>' : ''}
+                            </div>
+                            <div class="lesson-duration">
+                                ${auth.isLoggedIn() ?
+                                    `<button type="button" class="complete-lesson-btn ${isCompleted ? 'completed' : ''}"
+                                        onclick="handleCompleteLesson(${lesson.id}, ${courseId}, this)"
+                                        ${isCompleted ? 'disabled' : ''}>
+                                        ${isCompleted ? '<i class="fas fa-check"></i> Đã hoàn thành' : '<i class="fas fa-check"></i> Hoàn thành'}
+                                    </button>` :
+                                    `<i class="fas fa-play-circle"></i> Học ngay`
+                                }
+                            </div>
                         </div>
-                        <div class="lesson-duration">
-                            <i class="fas fa-play-circle"></i> Học ngay
-                        </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             } catch (error) {
                 container.innerHTML = '<p style="color: var(--gray-500);">Không thể tải danh sách bài học.</p>';
+            }
+        }
+
+        async function loadCourseProgress(courseId) {
+            try {
+                const stats = await getProgressStats(courseId);
+                if (stats && stats.total_lessons > 0) {
+                    const container = document.getElementById('course-progress-bar');
+                    const fill = document.getElementById('course-progress-fill');
+                    const percent = document.getElementById('course-progress-percent');
+                    if (container && fill && percent) {
+                        container.style.display = 'flex';
+                        const pct = stats.completion_percent || 0;
+                        fill.style.width = pct + '%';
+                        percent.textContent = pct + '%';
+                    }
+                }
+            } catch (e) {}
+        }
+
+        async function handleCompleteLesson(lessonId, courseId, btn) {
+            if (!auth.isLoggedIn()) {
+                window.location.href = 'login.html';
+                return;
+            }
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+            try {
+                await markLessonComplete(lessonId, courseId);
+                btn.classList.add('completed');
+                btn.innerHTML = '<i class="fas fa-check"></i> Đã hoàn thành';
+                const lessonItem = btn.closest('.lesson-item');
+                if (lessonItem) {
+                    lessonItem.classList.add('completed');
+                    const titleEl = lessonItem.querySelector('.lesson-title');
+                    if (titleEl && !titleEl.querySelector('.lesson-check')) {
+                        titleEl.innerHTML = '<i class="fas fa-check-circle lesson-check"></i> ' + titleEl.innerHTML;
+                    }
+                }
+                loadCourseProgress(courseId);
+            } catch (error) {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-check"></i> Hoàn thành';
+                showAlert(error.message || 'Không thể cập nhật tiến độ', 'error');
             }
         }
 

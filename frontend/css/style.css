@@ -1168,6 +1168,138 @@ main {
     color: var(--gray-500);
 }
 
+/* ===== Progress Tracking ===== */
+.progress-section {
+    margin-top: 16px;
+}
+
+.progress-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 16px 20px;
+    background: var(--primary-bg);
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--primary-lighter);
+}
+
+.progress-bar-wrapper {
+    flex: 1;
+    height: 10px;
+    background: var(--gray-200);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.progress-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+    border-radius: 5px;
+    transition: width 0.5s ease;
+}
+
+.progress-percent {
+    font-weight: 700;
+    color: var(--primary);
+    min-width: 50px;
+    text-align: right;
+}
+
+.progress-stats {
+    display: flex;
+    gap: 24px;
+    font-size: 0.9rem;
+    color: var(--gray-600);
+}
+
+.progress-stats span {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.progress-stats i {
+    color: var(--secondary);
+}
+
+.lesson-item.completed {
+    background: #ecfdf5;
+    border-color: #a7f3d0;
+}
+
+.lesson-item.completed .lesson-number {
+    background: var(--secondary);
+}
+
+.lesson-item.completed .lesson-title {
+    color: var(--secondary);
+}
+
+.lesson-item .lesson-check {
+    color: var(--secondary);
+    margin-right: 8px;
+}
+
+.complete-lesson-btn {
+    padding: 6px 14px;
+    background: var(--secondary);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: var(--transition);
+    margin-left: 8px;
+}
+
+.complete-lesson-btn:hover {
+    background: #059669;
+    transform: scale(1.05);
+}
+
+.complete-lesson-btn.completed {
+    background: var(--gray-300);
+    color: var(--gray-600);
+    cursor: default;
+}
+
+.complete-lesson-btn.completed:hover {
+    transform: none;
+}
+
+/* Course card progress overlay */
+.course-progress-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 8px 12px;
+    background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+}
+
+.course-progress-bar {
+    height: 4px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.course-progress-fill {
+    height: 100%;
+    background: var(--secondary);
+    border-radius: 2px;
+    transition: width 0.5s ease;
+}
+
+.course-progress-text {
+    font-size: 0.7rem;
+    color: white;
+    text-align: right;
+    margin-top: 2px;
+}
+
 /* ===== Scrollbar ===== */
 ::-webkit-scrollbar {
     width: 10px;
