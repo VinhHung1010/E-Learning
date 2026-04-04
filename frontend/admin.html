@@ -41,6 +41,10 @@
                     <i class="fas fa-star"></i>
                     <span>Đánh giá</span>
                 </a>
+                <a href="#" class="nav-item" data-section="lessons">
+                    <i class="fas fa-video"></i>
+                    <span>Bài học</span>
+                </a>
             </nav>
             <div class="admin-sidebar-footer">
                 <a href="index.html" class="nav-item">
@@ -275,6 +279,38 @@
                         </table>
                     </div>
                 </section>
+
+                <!-- Lessons Section -->
+                <section id="lessons-section" class="admin-section">
+                    <div class="section-header">
+                        <h2>Quản lý bài học</h2>
+                        <div class="section-actions">
+                            <select id="lesson-course-filter" class="filter-select" onchange="loadLessons()">
+                                <option value="">Tất cả khóa học</option>
+                            </select>
+                            <button class="btn btn-primary" onclick="showLessonModal()">
+                                <i class="fas fa-plus"></i> Thêm bài học
+                            </button>
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Khóa học</th>
+                                    <th>Tiêu đề</th>
+                                    <th>Video</th>
+                                    <th>Vị trí</th>
+                                    <th>Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="lessons-table-body">
+                                <tr><td colspan="6" class="loading">Đang tải...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
             </div>
         </main>
     </div>
@@ -333,6 +369,45 @@
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeCategoryModal()">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lesson Modal -->
+    <div id="lesson-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3 id="lesson-modal-title">Thêm bài học</h3>
+                <button class="modal-close" onclick="closeLessonModal()">&times;</button>
+            </div>
+            <form id="lesson-form" class="modal-form">
+                <input type="hidden" id="lesson-id">
+                <div class="form-group">
+                    <label for="lesson-course">Khóa học</label>
+                    <select id="lesson-course" required></select>
+                </div>
+                <div class="form-group">
+                    <label for="lesson-title">Tiêu đề bài học</label>
+                    <input type="text" id="lesson-title" required>
+                </div>
+                <div class="form-group">
+                    <label for="lesson-content">Nội dung bài học</label>
+                    <textarea id="lesson-content" rows="4" placeholder="Nhập nội dung bài học..."></textarea>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="lesson-video">URL Video</label>
+                        <input type="url" id="lesson-video" placeholder="https://www.youtube.com/watch?v=...">
+                    </div>
+                    <div class="form-group">
+                        <label for="lesson-position">Vị trí</label>
+                        <input type="number" id="lesson-position" min="1" value="1">
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeLessonModal()">Hủy</button>
                     <button type="submit" class="btn btn-primary">Lưu</button>
                 </div>
             </form>

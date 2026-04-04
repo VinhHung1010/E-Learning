@@ -1,4 +1,14 @@
 require('dotenv').config();
+
+if (!process.env.JWT_SECRET) {
+    if (process.env.NODE_ENV === 'production') {
+        console.error('FATAL: Thiếu JWT_SECRET trong .env hoặc biến môi trường.');
+        process.exit(1);
+    }
+    process.env.JWT_SECRET = 'elearning-dev-jwt-secret-khong-dung-production';
+    console.warn('[elearning-api] JWT_SECRET chưa cấu hình — đang dùng giá trị mặc định cho phát triển.');
+}
+
 const express = require('express');
 const cors = require('cors');
 const userRoutes = require('./routes/userRoutes');

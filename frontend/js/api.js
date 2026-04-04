@@ -136,6 +136,32 @@ async function getLessonsByCourse(courseId) {
     return await api(`/lessons/course/${courseId}`);
 }
 
+// Lấy bài học theo ID
+async function getLessonById(id) {
+    return await api(`/lessons/${id}`);
+}
+
+// Tạo bài học (Admin)
+async function createLesson(data) {
+    return await api('/lessons', {
+        method: 'POST',
+        body: JSON.stringify(data)
+    });
+}
+
+// Cập nhật bài học (Admin)
+async function updateLesson(id, data) {
+    return await api(`/lessons/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify(data)
+    });
+}
+
+// Xóa bài học (Admin)
+async function deleteLesson(id) {
+    return await api(`/lessons/${id}`, { method: 'DELETE' });
+}
+
 // Lấy khóa học của user
 async function getMyCourses() {
     return await api('/enrollments/my-courses');
