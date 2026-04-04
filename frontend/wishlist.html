@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yêu thích - E-Learning</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                <span>E-Learning</span>
+            </a>
+            <nav class="nav">
+                <ul class="nav-links">
+                    <li><a href="index.html">Trang chủ</a></li>
+                    <li><a href="courses.html">Khóa học</a></li>
+                </ul>
+                <div class="nav-auth">
+                    <a href="login.html" class="btn-login">Đăng nhập</a>
+                    <a href="register.html" class="btn-register">Đăng ký</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Khóa học yêu thích</h2>
+                <p class="section-subtitle">Danh sách khóa học bạn đã lưu</p>
+            </div>
+
+            <div id="wishlist-grid" class="course-grid">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Đang tải...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <a href="index.html" class="logo">
+                        <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                        <span>E-Learning</span>
+                    </a>
+                    <p>Nền tảng học trực tuyến hàng đầu Việt Nam.</p>
+                </div>
+                <div class="footer-col">
+                    <h4 class="footer-title">Khóa học</h4>
+                    <ul class="footer-links">
+                        <li><a href="courses.html">Tất cả khóa học</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 E-Learning. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        if (!requireAuth()) {}
+
+        function wishlistEmptyHtml() {
+            return `
+                <div class="empty-state" style="grid-column: 1/-1;">
+                    <div class="empty-state-icon"><i class="fas fa-heart"></i></div>
+                    <h3>Chưa có khóa học yêu thích</h3>
+                    <p>Lưu khóa học từ trang danh sách hoặc chi tiết khóa học.</p>
+                    <a href="courses.html" class="btn btn-primary"><i class="fas fa-search"></i> Khám phá khóa học</a>
+                </div>
+            `;
+        }
+
+        async function removeWishlistRow(courseId, btn) {
+            try {
+                await removeFromWishlist(courseId);
+                const card = btn.closest('.course-card');
+                if (card) card.remove();
+                const grid = document.getElementById('wishlist-grid');
+                if (grid && !grid.querySelector('.course-card')) {
+                    grid.innerHTML = wishlistEmptyHtml();
+                }
+            } catch (error) {
+                alert(error.message || 'Không thể xóa khỏi yêu thích');
+            }
+        }
+
+        async function loadWishlist() {
+            const container = document.getElementById('wishlist-grid');
+            try {
+                const items = await getWishlist();
+                if (items.length === 0) {
+                    container.innerHTML = wishlistEmptyHtml();
+                    return;
+                }
+                container.innerHTML = items.map((row) => `
+                    <div class="course-card">
+                        <div class="course-thumb">
+                            <button type="button" class="wishlist-heart active" onclick="event.preventDefault(); event.stopPropagation(); removeWishlistRow(${row.course_id}, this)" aria-label="Xóa khỏi yêu thích" title="Xóa khỏi yêu thích"><i class="fas fa-heart"></i></button>
+                            ${row.thumbnail ?
+                                `<img src="${row.thumbnail}" alt="${row.title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` :
+                                ''}
+                            <i class="fas fa-book" style="${row.thumbnail ? 'display:none' : ''}"></i>
+                            ${row.price == 0 ? '<span class="course-badge">Miễn phí</span>' : ''}
+                        </div>
+                        <div class="course-content">
+                            <span class="course-category">${row.category_name || 'Chưa phân loại'}</span>
+                            <h3 class="course-title">
+                                <a href="course-detail.html?id=${row.course_id}">${row.title}</a>
+                            </h3>
+                            <div class="course-footer">
+                                <span class="course-price ${row.price == 0 ? 'free' : ''}">${formatPrice(row.price)}</span>
+                                <span class="course-meta">
+                                    <i class="fas fa-book"></i>
+                                    ${row.lesson_count || 0} bài học
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="alert alert-error" style="grid-column: 1/-1;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        ${error.message || 'Không thể tải danh sách yêu thích.'}
+                    </div>
+                `;
+            }
+        }
+
+        updateAuthNav();
+        loadWishlist();
+    </script>
+</body>
+</html>

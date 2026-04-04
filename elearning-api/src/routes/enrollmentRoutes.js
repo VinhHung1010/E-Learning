@@ -1,6 +1,7 @@
 const express = require('express');
 const Enrollment = require('../models/Enrollment');
 const Course = require('../models/Course');
+const Notification = require('../models/Notification');
 const { auth, isAdmin } = require('../middleware/auth');
 
 const router = express.Router();
@@ -86,6 +87,19 @@ router.post('/', auth, async (req, res) => {
             status: course.price > 0 ? 'pending' : 'active'
         });
 
+        const title =
+            enrollment.status === 'active' ? 'Đăng ký thành công' : 'Đăng ký đang chờ xử lý';
+        const body =
+            enrollment.status === 'active'
+                ? `Bạn đã đăng ký khóa "${course.title}". Vào mục Khóa học của tôi để bắt đầu học.`
+                : `Đăng ký khóa "${course.title}" đang chờ thanh toán hoặc kích hoạt từ quản trị viên.`;
+        await Notification.create({
+            user_id: req.user.id,
+            title,
+            body,
+            type: 'enrollment'
+        });
+
         res.status(201).json({ message: 'Đăng ký khóa học thành công', enrollment });
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -95,12 +109,26 @@ router.post('/', auth, async (req, res) => {
 router.put('/:id', auth, isAdmin, async (req, res) => {
     try {
         const { status } = req.body;
+        const prev = await Enrollment.getById(req.params.id);
+        if (!prev) {
+            return res.status(404).json({ error: 'Không tìm thấy đăng ký' });
+        }
+
         const updated = await Enrollment.update(req.params.id, { status });
-        
+
         if (!updated) {
             return res.status(404).json({ error: 'Không tìm thấy đăng ký' });
         }
-        
+
+        if (status === 'active' && prev.status === 'pending') {
+            await Notification.create({
+                user_id: prev.user_id,
+                title: 'Khóa học đã được kích hoạt',
+                body: `Đăng ký khóa "${prev.course_title || 'khóa học'}" đã được duyệt. Bạn có thể vào Khóa học của tôi để học.`,
+                type: 'enrollment'
+            });
+        }
+
         const enrollment = await Enrollment.getById(req.params.id);
         res.json({ message: 'Cập nhật đăng ký thành công', enrollment });
     } catch (error) {

@@ -1034,6 +1034,140 @@ main {
     }
 }
 
+/* ===== Wishlist & notifications ===== */
+.nav-bell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-sm);
+    color: var(--gray-700);
+    transition: var(--transition);
+}
+
+.nav-bell:hover {
+    background: var(--primary-bg);
+    color: var(--primary);
+}
+
+.nav-bell-badge {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 5px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    line-height: 18px;
+    text-align: center;
+    color: white;
+    background: var(--danger);
+    border-radius: 9px;
+    display: none;
+}
+
+.nav-bell-badge.visible {
+    display: inline-block;
+}
+
+.wishlist-heart {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    z-index: 4;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.95);
+    color: var(--gray-400);
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: var(--transition);
+}
+
+.wishlist-heart:hover {
+    color: var(--danger);
+    transform: scale(1.06);
+}
+
+.wishlist-heart.active {
+    color: var(--danger);
+}
+
+.course-detail-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 8px;
+}
+
+.course-detail-actions .course-detail-enroll {
+    flex: 1;
+    min-width: 200px;
+}
+
+.wishlist-detail-btn.active {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.notifications-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 20px;
+}
+
+.notification-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.notification-item {
+    background: var(--white);
+    border-radius: var(--radius);
+    padding: 16px 20px;
+    border: 1px solid var(--gray-200);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+    width: 100%;
+}
+
+.notification-item:hover {
+    border-color: var(--primary-light);
+}
+
+.notification-item.unread {
+    border-left: 4px solid var(--primary);
+    background: var(--primary-bg);
+}
+
+.notification-item .notification-title {
+    font-weight: 700;
+    color: var(--gray-900);
+    margin-bottom: 6px;
+}
+
+.notification-item .notification-body {
+    font-size: 0.95rem;
+    color: var(--gray-600);
+    margin-bottom: 8px;
+}
+
+.notification-item .notification-meta {
+    font-size: 0.8rem;
+    color: var(--gray-500);
+}
+
 /* ===== Scrollbar ===== */
 ::-webkit-scrollbar {
     width: 10px;

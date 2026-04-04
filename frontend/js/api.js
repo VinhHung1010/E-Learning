@@ -31,16 +31,22 @@ function updateAuthNav() {
             adminLink = '<a href="admin.html"><i class="fas fa-cog"></i> Quản trị</a>';
         }
         navAuth.innerHTML = `
+            <a href="notifications.html" class="nav-bell" title="Thông báo">
+                <i class="fas fa-bell"></i>
+                <span class="nav-bell-badge" id="nav-notif-badge"></span>
+            </a>
             <div class="user-menu">
                 <div class="user-avatar">${user.name.charAt(0).toUpperCase()}</div>
                 <span class="user-name">${user.name}</span>
                 <div class="dropdown-menu">
                     ${adminLink}
+                    <a href="wishlist.html"><i class="fas fa-heart"></i> Yêu thích</a>
                     <a href="my-courses.html"><i class="fas fa-book"></i> Khóa học của tôi</a>
                     <a href="#" onclick="logout()"><i class="fas fa-sign-out-alt"></i> Đăng xuất</a>
                 </div>
             </div>
         `;
+        refreshNavNotifBadge();
     } else {
         navAuth.innerHTML = `
             <a href="login.html" class="btn-login">Đăng nhập</a>
@@ -154,6 +160,112 @@ async function createReview(courseId, rating, comment) {
         method: 'POST',
         body: JSON.stringify({ course_id: courseId, rating, comment })
     });
+}
+
+async function getWishlistCourseIds() {
+    if (!auth.isLoggedIn()) return [];
+    try {
+        const data = await api('/wishlist/ids');
+        return data.course_ids || [];
+    } catch {
+        return [];
+    }
+}
+
+async function addToWishlist(courseId) {
+    return await api('/wishlist', {
+        method: 'POST',
+        body: JSON.stringify({ course_id: courseId })
+    });
+}
+
+async function removeFromWishlist(courseId) {
+    return await api(`/wishlist/course/${courseId}`, { method: 'DELETE' });
+}
+
+async function checkWishlist(courseId) {
+    if (!auth.isLoggedIn()) return false;
+    const data = await api(`/wishlist/check/${courseId}`);
+    return !!data.in_wishlist;
+}
+
+async function toggleWishlistDetail(courseId, btn) {
+    const isActive = btn.classList.contains('active');
+    try {
+        if (isActive) {
+            await removeFromWishlist(courseId);
+            btn.classList.remove('active');
+            btn.innerHTML = '<i class="far fa-heart"></i> Yêu thích';
+        } else {
+            await addToWishlist(courseId);
+            btn.classList.add('active');
+            btn.innerHTML = '<i class="fas fa-heart"></i> Đã yêu thích';
+        }
+    } catch (error) {
+        alert(error.message || 'Không thể cập nhật yêu thích');
+    }
+}
+
+async function getWishlist() {
+    return await api('/wishlist');
+}
+
+async function getNotifications(query = {}) {
+    const q = new URLSearchParams(query).toString();
+    return await api(`/notifications${q ? '?' + q : ''}`);
+}
+
+async function getUnreadNotificationCount() {
+    return await api('/notifications/unread-count');
+}
+
+async function markNotificationRead(id) {
+    return await api(`/notifications/${id}/read`, { method: 'PATCH' });
+}
+
+async function markAllNotificationsRead() {
+    return await api('/notifications/read-all', { method: 'PATCH' });
+}
+
+function wishlistHeartHtml(courseId, filled) {
+    return `<button type="button" class="wishlist-heart ${filled ? 'active' : ''}" onclick="event.preventDefault(); event.stopPropagation(); toggleWishlistBtn(${courseId}, this)" aria-label="Yêu thích" title="Yêu thích"><i class="fas fa-heart"></i></button>`;
+}
+
+async function toggleWishlistBtn(courseId, btn) {
+    if (!auth.isLoggedIn()) {
+        window.location.href = 'login.html';
+        return;
+    }
+    try {
+        const active = btn.classList.contains('active');
+        if (active) {
+            await removeFromWishlist(courseId);
+            btn.classList.remove('active');
+        } else {
+            await addToWishlist(courseId);
+            btn.classList.add('active');
+        }
+    } catch (error) {
+        alert(error.message || 'Không thể cập nhật yêu thích');
+    }
+}
+
+async function refreshNavNotifBadge() {
+    if (!auth.isLoggedIn()) return;
+    const el = document.getElementById('nav-notif-badge');
+    if (!el) return;
+    try {
+        const { count } = await getUnreadNotificationCount();
+        if (count > 0) {
+            el.textContent = count > 9 ? '9+' : String(count);
+            el.classList.add('visible');
+        } else {
+            el.textContent = '';
+            el.classList.remove('visible');
+        }
+    } catch {
+        el.classList.remove('visible');
+    }
 }
 
 // Format tiền VND

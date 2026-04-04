@@ -107,6 +107,7 @@
             
             try {
                 const courses = await getFeaturedCourses(8);
+                const wishIds = new Set(await getWishlistCourseIds());
                 
                 if (courses.length === 0) {
                     container.innerHTML = `
@@ -123,6 +124,7 @@
                 container.innerHTML = courses.map(course => `
                     <div class="course-card">
                         <div class="course-thumb">
+                            ${wishlistHeartHtml(course.id, wishIds.has(course.id))}
                             ${course.thumbnail ? 
                                 `<img src="${course.thumbnail}" alt="${course.title}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">` : 
                                 ''}

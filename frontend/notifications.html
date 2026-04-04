@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông báo - E-Learning</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <a href="index.html" class="logo">
+                <div class="logo-icon"><i class="fas fa-graduation-cap"></i></div>
+                <span>E-Learning</span>
+            </a>
+            <nav class="nav">
+                <ul class="nav-links">
+                    <li><a href="index.html">Trang chủ</a></li>
+                    <li><a href="courses.html">Khóa học</a></li>
+                </ul>
+                <div class="nav-auth">
+                    <a href="login.html" class="btn-login">Đăng nhập</a>
+                    <a href="register.html" class="btn-register">Đăng ký</a>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <div class="section-header">
+                <h2 class="section-title">Thông báo</h2>
+                <p class="section-subtitle">Cập nhật đăng ký khóa học và hoạt động của bạn</p>
+            </div>
+
+            <div class="notifications-toolbar">
+                <button type="button" class="btn btn-outline" onclick="markAllReadClick()">
+                    <i class="fas fa-check-double"></i> Đánh dấu tất cả đã đọc
+                </button>
+            </div>
+
+            <div id="notification-list" class="notification-list">
+                <div class="loading">
+                    <div class="spinner"></div>
+                    <p>Đang tải thông báo...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom" style="padding: 24px 0;">
+                <p>&copy; 2024 E-Learning. Tất cả quyền được bảo lưu.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="js/api.js"></script>
+    <script>
+        if (!requireAuth()) {}
+
+        function formatNotifDate(d) {
+            if (!d) return '';
+            return new Date(d).toLocaleString('vi-VN');
+        }
+
+        async function loadNotifications() {
+            const container = document.getElementById('notification-list');
+            try {
+                const list = await getNotifications({ limit: 50 });
+                if (list.length === 0) {
+                    container.innerHTML = `
+                        <div class="empty-state" style="padding: 48px 0;">
+                            <div class="empty-state-icon"><i class="fas fa-bell-slash"></i></div>
+                            <h3>Chưa có thông báo</h3>
+                            <p>Khi bạn đăng ký khóa học hoặc được kích hoạt, thông báo sẽ hiển thị tại đây.</p>
+                        </div>
+                    `;
+                    return;
+                }
+                container.innerHTML = list.map((n) => `
+                    <button type="button" class="notification-item ${n.is_read ? '' : 'unread'}" data-id="${n.id}" onclick="openNotification(${n.id}, ${n.is_read ? 'true' : 'false'})">
+                        <div class="notification-title">${escapeHtml(n.title)}</div>
+                        ${n.body ? `<div class="notification-body">${escapeHtml(n.body)}</div>` : ''}
+                        <div class="notification-meta">
+                            <span class="badge" style="background: var(--primary-bg); color: var(--primary); padding: 2px 8px; border-radius: 6px; font-size: 0.75rem;">${escapeHtml(n.type || 'system')}</span>
+                            · ${formatNotifDate(n.created_at)}
+                        </div>
+                    </button>
+                `).join('');
+            } catch (error) {
+                container.innerHTML = `
+                    <div class="alert alert-error">
+                        <i class="fas fa-exclamation-circle"></i>
+                        ${error.message || 'Không thể tải thông báo.'}
+                    </div>
+                `;
+            }
+        }
+
+        function escapeHtml(s) {
+            if (!s) return '';
+            const div = document.createElement('div');
+            div.textContent = s;
+            return div.innerHTML;
+        }
+
+        async function openNotification(id, alreadyRead) {
+            if (!alreadyRead) {
+                try {
+                    await markNotificationRead(id);
+                    refreshNavNotifBadge();
+                } catch (e) {}
+            }
+            const el = document.querySelector(`.notification-item[data-id="${id}"]`);
+            if (el) el.classList.remove('unread');
+        }
+
+        async function markAllReadClick() {
+            try {
+                await markAllNotificationsRead();
+                await loadNotifications();
+                refreshNavNotifBadge();
+            } catch (error) {
+                alert(error.message || 'Có lỗi xảy ra');
+            }
+        }
+
+        updateAuthNav();
+        loadNotifications();
+    </script>
+</body>
+</html>

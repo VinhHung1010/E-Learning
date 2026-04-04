@@ -96,7 +96,13 @@
             
             try {
                 const course = await getCourseById(courseId);
-                
+                let onWishlist = false;
+                if (auth.isLoggedIn()) {
+                    try {
+                        onWishlist = await checkWishlist(courseId);
+                    } catch (e) { onWishlist = false; }
+                }
+
                 container.innerHTML = `
                     <div class="course-detail-header">
                         <div class="course-detail-thumb">
@@ -121,9 +127,14 @@
                                 ${formatPrice(course.price)}
                             </div>
                             ${auth.isLoggedIn() ? 
-                                `<button onclick="doEnrollCourse(${course.id})" class="btn btn-primary btn-lg btn-block">
-                                    <i class="fas fa-graduation-cap"></i> Đăng ký khóa học
-                                </button>` :
+                                `<div class="course-detail-actions">
+                                    <button onclick="doEnrollCourse(${course.id})" class="btn btn-primary btn-lg course-detail-enroll">
+                                        <i class="fas fa-graduation-cap"></i> Đăng ký khóa học
+                                    </button>
+                                    <button type="button" class="btn btn-outline btn-lg wishlist-detail-btn ${onWishlist ? 'active' : ''}" onclick="toggleWishlistDetail(${course.id}, this)">
+                                        <i class="${onWishlist ? 'fas' : 'far'} fa-heart"></i> ${onWishlist ? 'Đã yêu thích' : 'Yêu thích'}
+                                    </button>
+                                </div>` :
                                 `<a href="login.html" class="btn btn-primary btn-lg btn-block">
                                     <i class="fas fa-sign-in-alt"></i> Đăng nhập để đăng ký
                                 </a>`
@@ -190,6 +201,7 @@
             try {
                 await enrollCourse(courseId);
                 showAlert('Đăng ký khóa học thành công! Bạn có thể bắt đầu học ngay.', 'success');
+                refreshNavNotifBadge();
             } catch (error) {
                 showAlert(error.message, 'error');
             }
